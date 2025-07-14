@@ -1,166 +1,94 @@
 import { Controller } from "@hotwired/stimulus"
 
-/**
- * Controlador para la previsualización en tiempo real de los balances de horas en la fila de un trabajador.
- * Lógica de cálculo reconstruida para máxima robustez, claridad y para evitar fallos silenciosos.
- */
 export default class extends Controller {
   static targets = [
-    "totalComputadas",
-    "impactoOrdinaria",
-    "impactoFestivos",
-    "impactoLibranza",
-    "submitButton"
+    "totalComputadas", 
+    "impactoOrdinaria", 
+    "impactoFestivos", 
+    "impactoLibranza"
   ]
+  static values = {
+    jornadaSemanal: Number,
+    acumulaFestivos: Boolean,
+    acumulaLibranza: Boolean
+  }
 
   connect() {
-    this.recalcular();
+    // Realizar el primer cálculo al cargar la página
+    this.recalcular()
   }
 
-  /**
-   * Parsea un valor a float de forma segura, manejando comas, vacíos y valores no numéricos.
-   * @param {string | number} value - El valor a parsear.
-   * @returns {number} - El número parseado, o 0 si es inválido.
-   */
-  _parseFloat(value) {
-    if (typeof value !== 'string' && typeof value !== 'number') return 0;
-    const stringValue = String(value).trim().replace(',', '.');
-    if (stringValue === '') return 0;
-    const number = parseFloat(stringValue);
-    return isNaN(number) ? 0 : number;
-  }
+  recalcular() {
+    let totalTeoricoSemanal = 0
+    let totalRealComputable = 0
+    let totalFestivosTrabajados = 0
+    let totalLibranzaFestivos = 0
+    let totalHorasComputadas = 0
 
-  recalcular(event) {
-    if (event) {
-      this.element.classList.add('fila-modificada');
-    }
-    if (this.hasSubmitButtonTarget) {
-      this.resetSubmitButton();
-    }
+    const celdasDia = this.element.querySelectorAll('.day-cell')
 
-    const celdasDia = this.element.querySelectorAll('.day-cell');
-    const datosSemana = Array.from(celdasDia).map(celda => this._leerDatosCelda(celda));
-    const config = this._leerConfiguracionContrato();
-
-    const balancesDiarios = datosSemana.map(dia => {
-      let horasComputadasDia = dia.trabajadas;
-      if (dia.ausencia.id) {
-        if (dia.ausencia.esRetribuida) {
-          horasComputadasDia += dia.ausencia.horas;
-        }
+    celdasDia.forEach(celda => {
+      // Leer los valores de cada día desde los inputs y los data-attributes
+      const teoricasDia = parseFloat(celda.dataset.teoricas || 0)
+      const esFestivo = celda.dataset.festivo === 'true'
+      const esApertura = celda.dataset.aperturaAutorizada === 'true'
+      
+      const inputHoras = celda.querySelector('input[name*="[horas_trabajadas]"]')
+      const inputComp = celda.querySelector('input[name*="[horas_complementarias_pagadas]"]')
+      const checkPagoDoble = celda.querySelector('input[name*="[pago_doble]"]')
+      const selectAusencia = celda.querySelector('select[name*="[tipo_ausencia_id]"]')
+      
+      let horasTrabajadas = parseFloat(inputHoras.value || inputHoras.placeholder || 0)
+      let horasComp = parseFloat(inputComp.value || 0)
+      let pagoDoble = checkPagoDoble ? checkPagoDoble.checked : false
+      
+      let horasAusencia = 0
+      let ausenciaGeneraDeuda = false
+      if (selectAusencia && selectAusencia.value !== "") {
+        const selectedOption = selectAusencia.options[selectAusencia.selectedIndex]
+        // Asumimos que la ausencia cubre las horas teóricas del día
+        horasAusencia = teoricasDia
+        ausenciaGeneraDeuda = selectedOption.dataset.generaDeuda === 'true'
       }
 
-      let horasRealesComputablesDia = dia.trabajadas;
-      horasRealesComputablesDia -= dia.compPagadas;
-      if (dia.pagoDoble || (dia.esFestivo && config.acumulaFestivoTrabajado && dia.trabajadas > 0)) {
-        horasRealesComputablesDia = 0;
-      }
-      const horasConsumidasBolsaOrdinariaDia = (dia.ausencia.categoriaBolsa === 'horas' ? dia.ausencia.horas : 0);
-      const impactoOrdinariaDia = (horasRealesComputablesDia - dia.teoricas) - horasConsumidasBolsaOrdinariaDia;
-
-      let horasGeneradasBolsaFestivosDia = 0;
-      if (dia.esFestivo && !dia.pagoDoble && config.acumulaFestivoTrabajado && dia.trabajadas > 0) {
-        horasGeneradasBolsaFestivosDia = dia.trabajadas - dia.compPagadas;
-      }
-      const horasConsumidasBolsaFestivosDia = (dia.ausencia.categoriaBolsa === 'festivos' ? dia.ausencia.horas : 0);
-      const impactoFestivosDia = horasGeneradasBolsaFestivosDia - horasConsumidasBolsaFestivosDia;
-
-      let horasGeneradasBolsaLibranzaDia = 0;
-      if (dia.esFestivo && dia.teoricas === 0 && config.acumulaFestivoEnLibranza) {
-        horasGeneradasBolsaLibranzaDia = config.jornadaSemanal / 5;
-      }
-      const horasConsumidasBolsaLibranzaDia = (dia.ausencia.categoriaBolsa === 'libranza' ? dia.ausencia.horas : 0);
-      const impactoLibranzaDia = horasGeneradasBolsaLibranzaDia - horasConsumidasBolsaLibranzaDia;
-
-      return {
-        computadas: horasComputadasDia,
-        impactoOrdinaria: impactoOrdinariaDia,
-        impactoFestivos: impactoFestivosDia,
-        impactoLibranza: impactoLibranzaDia
-      };
-    });
-
-    const totalComputadoSemana = balancesDiarios.reduce((sum, dia) => sum + dia.computadas, 0);
-    const impactoOrdinariaSemana = balancesDiarios.reduce((sum, dia) => sum + dia.impactoOrdinaria, 0);
-    const impactoFestivosSemana = balancesDiarios.reduce((sum, dia) => sum + dia.impactoFestivos, 0);
-    const impactoLibranzaSemana = balancesDiarios.reduce((sum, dia) => sum + dia.impactoLibranza, 0);
-
-    if (this.hasTotalComputadasTarget) this.totalComputadasTarget.textContent = `${totalComputadoSemana.toFixed(2)}h`;
-    if (this.hasImpactoOrdinariaTarget) this.impactoOrdinariaTarget.textContent = `${impactoOrdinariaSemana.toFixed(2)}h`;
-    if (this.hasImpactoFestivosTarget) this.impactoFestivosTarget.textContent = `${impactoFestivosSemana.toFixed(2)}h`;
-    if (this.hasImpactoLibranzaTarget) this.impactoLibranzaTarget.textContent = `${impactoLibranzaSemana.toFixed(2)}h`;
-  }
-
-  /**
-   * Lee la configuración del contrato desde los data-attributes de la fila.
-   */
-  _leerConfiguracionContrato() {
-    return {
-      jornadaSemanal: this._parseFloat(this.element.dataset.jornadaSemanal),
-      acumulaFestivoTrabajado: this.element.dataset.acumulaFestivoTrabajado === 'true',
-      acumulaFestivoEnLibranza: this.element.dataset.acumulaFestivoEnLibranza === 'true'
-    };
-  }
-
-  /**
-   * Lee todos los datos relevantes de una celda de día.
-   */
-  _leerDatosCelda(celda) {
-    const teoricas = this._parseFloat(celda.dataset.teoricas);
-
-    const selectAusencia = celda.querySelector('select[name*="[tipo_ausencia_id]"]');
-    let ausenciaData = { id: null, horas: 0, categoriaBolsa: null, esRetribuida: false };
-    let esAusenciaDiaCompleto = false;
-
-    if (selectAusencia && selectAusencia.value) {
-      const selectedOption = selectAusencia.options[selectAusencia.selectedIndex];
-      ausenciaData.id = selectAusencia.value;
-      ausenciaData.esRetribuida = selectedOption.dataset.esRetribuida === 'true';
-      ausenciaData.categoriaBolsa = selectedOption.dataset.categoriaBolsa;
-
-      if (selectedOption.dataset.fraccionable === 'true') {
-        const inputHorasAusencia = celda.querySelector('input[name*="[horas_ausencia]"]');
-        ausenciaData.horas = this._parseFloat(inputHorasAusencia.value);
+      totalTeoricoSemanal += teoricasDia
+      
+      // Cálculo para "Total Horas Computadas"
+      totalHorasComputadas += horasTrabajadas
+      if (!ausenciaGeneraDeuda) {
+        totalHorasComputadas += horasAusencia
       } else {
-        ausenciaData.horas = teoricas;
-        esAusenciaDiaCompleto = true;
+        totalHorasComputadas -= horasAusencia
       }
-    }
 
-    let trabajadas = 0;
-    if (esAusenciaDiaCompleto) {
-      trabajadas = 0;
-    } else {
-      const inputHoras = celda.querySelector('input[name*="[horas_trabajadas]"]');
-      const valorHoras = inputHoras.value.trim() !== '' ? inputHoras.value : inputHoras.placeholder;
-      trabajadas = this._parseFloat(valorHoras);
-    }
+      // Cálculo para "Impacto Bolsa HORAS"
+      let horasParaBalance = horasTrabajadas
+      
+      if (esFestivo && pagoDoble) {
+        horasParaBalance = 0
+      } else if (esFestivo && !pagoDoble && this.acumulaFestivosValue) {
+        totalFestivosTrabajados += horasTrabajadas
+        horasParaBalance = 0
+      }
+      
+      horasParaBalance -= horasComp
+      totalRealComputable += horasParaBalance
 
-    const inputComp = celda.querySelector('input[name*="[horas_comp_pagadas]"]');
-    const compPagadas = this._parseFloat(inputComp.value);
+      // Cálculo para "Impacto Bolsa LIBRANZA"
+      if (esFestivo && !esApertura && teoricasDia === 0 && this.acumulaLibranzaValue) {
+        totalLibranzaFestivos += (this.jornadaSemanalValue / 5.0)
+      }
+    })
 
-    const checkPagoDoble = celda.querySelector('input[name*="[pago_doble]"]');
-    const pagoDoble = checkPagoDoble ? checkPagoDoble.checked : false;
+    const balance = totalRealComputable - totalTeoricoSemanal
 
-    return {
-      teoricas,
-      trabajadas,
-      compPagadas,
-      pagoDoble,
-      esFestivo: celda.classList.contains('festivo'),
-      ausencia: ausenciaData
-    };
-  }
-
-  /**
-   * Resetea el estado del botón de "Confirmar" si estaba como "Procesado".
-   */
-  resetSubmitButton() {
-    const button = this.submitButtonTarget;
-    if (button.classList.contains('procesado')) {
-      button.classList.remove('procesado', 'btn-success');
-      button.classList.add('btn-primary');
-      button.textContent = "Confirmar";
-    }
+    // Actualizar la interfaz con los resultados
+    this.totalComputadasTarget.textContent = `${totalHorasComputadas.toFixed(2)}h`
+    this.impactoOrdinariaTarget.textContent = `${balance.toFixed(2)}h`
+    this.impactoFestivosTarget.textContent = `${totalFestivosTrabajados.toFixed(2)}h`
+    this.impactoLibranzaTarget.textContent = `${totalLibranzaFestivos.toFixed(2)}h`
+    
+    // Resaltar la fila
+    this.element.classList.add('fila-modificada')
   }
 }

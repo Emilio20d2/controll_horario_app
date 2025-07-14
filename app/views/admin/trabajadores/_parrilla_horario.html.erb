@@ -1,0 +1,26 @@
+<%#
+  Parcial para mostrar una parrilla de horario 4x7 en modo de solo lectura.
+  Recibe una variable local `horario` que es un hash con la estructura del horario.
+%>
+<table class="table table-bordered text-center table-sm">
+  <thead class="table-light">
+    <tr>
+      <th style="width: 12%;">Turno</th>
+      <% %w[Lunes Martes Miércoles Jueves Viernes Sábado Domingo].each do |dia| %>
+        <th><%= dia %></th>
+      <% end %>
+    </tr>
+  </thead>
+  <tbody>
+    <% (1..4).each do |turno_num| %>
+      <tr>
+        <td class="fw-bold align-middle">Turno <%= turno_num %></td>
+        <% %w[lunes martes miercoles jueves viernes sabado domingo].each do |dia_key| %>
+          <%# Usamos .dig para acceder de forma segura al hash anidado %>
+          <% horas = horario.dig("turno#{turno_num}", dia_key) || 0 %>
+          <td><%= number_with_precision(horas, precision: 2) %></td>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

@@ -1,0 +1,39 @@
+<%# app/views/admin/historial_contratos/new.html.erb %>
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header">
+      <h3>Añadir Nueva Jornada para <%= @trabajador.nombre %></h3>
+    </div>
+    <div class="card-body">
+      <%# El helper form_with necesita el namespace :admin para construir la URL correcta %>
+      <%= form_with(model: [:admin, @trabajador, @historial_contrato], local: true) do |form| %>
+        <% if @historial_contrato.errors.any? %>
+          <div id="error_explanation" class="alert alert-danger">
+            <h4><%= pluralize(@historial_contrato.errors.count, "error") %> impidieron guardar la jornada:</h4>
+            <ul>
+              <% @historial_contrato.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div class="mb-3">
+          <%= form.label :fecha_inicio_vigencia, "Fecha de inicio de la nueva jornada", class: "form-label" %>
+          <%= form.date_field :fecha_inicio_vigencia, class: "form-control", required: true %>
+          <div class="form-text">Esta fecha determinará el fin del período de jornada anterior.</div>
+        </div>
+
+        <div class="mb-3">
+          <%= form.label :horas_semanales_contratadas, "Nuevas horas semanales", class: "form-label" %>
+          <%= form.number_field :horas_semanales_contratadas, step: :any, class: "form-control", required: true, placeholder: "Ej: 40.0" %>
+        </div>
+
+        <div class="d-flex justify-content-between">
+          <%= form.submit "Guardar Nueva Jornada", class: "btn btn-primary" %>
+          <%= link_to "Cancelar", admin_trabajador_path(@trabajador), class: "btn btn-secondary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

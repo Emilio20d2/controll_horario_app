@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  nombre: MyString
+  horario: MyText
+  fecha_referencia: 2025-07-08
+
+two:
+  nombre: MyString
+  horario: MyText
+  fecha_referencia: 2025-07-08

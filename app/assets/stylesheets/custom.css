@@ -1,0 +1,64 @@
+/* --- Estilo Base y Fondo de Pantalla --- */
+body {
+  background-image: url('FondoPantalla.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #000000;
+  background-color: #f0f2f5; /* Color de respaldo si la imagen no carga */
+}
+
+/* Añade una capa semitransparente sobre el fondo para mejorar la legibilidad del texto */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.5); /* Capa blanca semitransparente */
+  z-index: -1;
+}
+
+/* --- Caja de Contenido Principal --- */
+.content-box {
+  background-color: rgba(255, 255, 255, 0.5); /* Fondo ligeramente transparente */
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  padding: 1.5rem;
+}
+
+/* --- Cabeceras de Página --- */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #343a40;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* --- Estilos del Menú Principal --- */
+.menu-options-container {
+  max-width: 500px;
+  margin: 40px auto;
+}
+
+.menu-option {
+  /* Añade el espacio vertical entre los botones del menú */
+  margin-bottom: 1rem; 
+}
+
+.menu-option .btn {
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  font-size: 1.1rem;
+}
+
+/* --- Estilo General de Tablas --- */
+thead th {
+  /* Usamos un color oscuro y sólido para la cabecera para asegurar el contraste y la legibilidad. */
+  background-color: #869495; /* Color de cabecera de tabla oscuro de Bootstrap */
+  color: white;
+}
+

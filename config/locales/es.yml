@@ -1,0 +1,40 @@
+es:
+  date:
+    formats:
+      # Formatos de fecha estándar
+      default: "%d/%m/%Y"
+      short: "%d de %b"
+      long: "%A, %d de %B de %Y"
+
+      # Formato personalizado para el nombre corto del día de la semana
+      # Esto resuelve el error I18n::MissingTranslationData
+      weekday_short: "%a"
+
+    # Nombres de los días de la semana
+    day_names:
+      - Domingo
+      - Lunes
+      - Martes
+      - Miércoles
+      - Jueves
+      - Viernes
+      - Sábado
+    abbr_day_names:
+      - Dom
+      - Lun
+      - Mar
+      - Mié
+      - Jue
+      - Vie
+      - Sáb
+
+    # Nombres de los meses
+    month_names: [~, Enero, Febrero, Marzo, Abril, Mayo, Junio, Julio, Agosto, Septiembre, Octubre, Noviembre, Diciembre]
+    abbr_month_names: [~, Ene, Feb, Mar, Abr, May, Jun, Jul, Ago, Sep, Oct, Nov, Dic]
+
+  # Añadimos una sección básica para 'time' para evitar futuros errores
+  time:
+    formats:
+      default: "%a, %d de %b de %Y %H:%M:%S %Z"
+      short: "%d %b %H:%M"
+      long: "%A, %d de %B de %Y %H:%M"

@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  trabajador: one
+  anio: 1
+  horas_teoricas: 9.99
+  horas_reales: 9.99
+  balance: 9.99
+  datos_calculo: MyText
+
+two:
+  trabajador: two
+  anio: 1
+  horas_teoricas: 9.99
+  horas_reales: 9.99
+  balance: 9.99
+  datos_calculo: MyText

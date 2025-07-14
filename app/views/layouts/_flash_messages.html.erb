@@ -1,0 +1,15 @@
+<%# Parcial para mostrar los mensajes flash de Rails (notice, alert, etc.) %>
+<% flash.each do |type, message| %>
+  <%# Mapeamos los tipos de flash de Rails a las clases de alerta de Bootstrap %>
+  <% bs_class = case type
+                when 'notice' then 'info'
+                when 'success' then 'success'
+                when 'error' then 'danger'
+                when 'alert' then 'warning'
+                else 'secondary'
+                end %>
+  <div class="alert alert-<%= bs_class %> alert-dismissible fade show" role="alert">
+    <%= message %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+<% end %>

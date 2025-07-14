@@ -1,0 +1,88 @@
+<%#
+  Página para gestionar la configuración de la jornada anual de convenio.
+  Permite crear nuevas configuraciones y listar/editar/eliminar las existentes.
+%>
+
+<div class="page-header">
+  <h1>Configuración de Jornada Anual</h1>
+  <%= link_to 'Volver al Panel', admin_root_path, class: 'btn btn-secondary' %>
+</div>
+
+<div class="row">
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header">
+        <h5>Añadir Nueva Configuración</h5>
+      </div>
+      <div class="card-body">
+        <%= form_with(model: [:admin, @configuracion], url: admin_configuracion_jornadas_path) do |form| %>
+          <% if @configuracion.errors.any? %>
+            <div class="alert alert-danger">
+              <h6><%= pluralize(@configuracion.errors.count, "error") %>:</h6>
+              <ul>
+                <% @configuracion.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <div class="mb-3">
+            <%= form.label :anio, "Año", class: 'form-label' %>
+            <%= form.number_field :anio, class: 'form-control', required: true, placeholder: Date.today.year %>
+          </div>
+
+          <div class="mb-3">
+            <%= form.label :horas_maximas, "Horas Anuales de Convenio", class: 'form-label' %>
+            <%= form.number_field :horas_maximas, class: 'form-control', required: true, step: 0.25, placeholder: 'Ej: 1780.00' %>
+            <div class="form-text">Total de horas para una jornada completa (40h/semana).</div>
+          </div>
+
+          <div class="mb-3">
+            <%= form.label :jornada_semanal_maxima, "Jornada Semanal Máxima (Ref.)", class: 'form-label' %>
+            <%= form.number_field :jornada_semanal_maxima, class: 'form-control', required: true, step: 0.25, value: @configuracion.jornada_semanal_maxima || 40.0 %>
+            <div class="form-text">Jornada de referencia para el cálculo de prorrateos (normalmente 40).</div>
+          </div>
+
+          <div class="d-grid">
+            <%= form.submit "Guardar Configuración", class: 'btn btn-primary' %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header">
+        <h5>Configuraciones Guardadas</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover mb-0">
+            <thead>
+              <tr>
+                <th class="py-2 px-3">Año</th>
+                <th class="py-2 px-3">Horas Anuales</th>
+                <th class="py-2 px-3">Jornada Sem. Máx.</th>
+                <th class="text-end py-2 px-3">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @configuraciones.each do |config| %>
+                <tr>
+                  <td class="py-2 px-3"><strong><%= config.anio %></strong></td>
+                  <td class="py-2 px-3"><%= number_with_precision(config.horas_maximas, precision: 2) %></td>
+                  <td class="py-2 px-3"><%= number_with_precision(config.jornada_semanal_maxima, precision: 2) %></td>
+                  <td class="text-end py-2 px-3">
+                    <%= link_to 'Editar', edit_admin_configuracion_jornada_path(config), class: 'btn btn-sm btn-primary' %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,31 @@
+<%#
+  Parcial para renderizar la parrilla 4x7 de una plantilla de horario.
+  Recibe:
+  - plantilla: La instancia del modelo PlantillaHorario.
+%>
+<div class="table-responsive">
+  <table class="table table-bordered text-center table-sm">
+    <thead class="table-light">
+      <tr>
+        <th>Turno</th>
+        <th>Lunes</th>
+        <th>Martes</th>
+        <th>Miércoles</th>
+        <th>Jueves</th>
+        <th>Viernes</th>
+        <th>Sábado</th>
+        <th>Domingo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% (1..4).each do |num_turno| %>
+        <tr>
+          <td class="fw-bold">Turno <%= num_turno %></td>
+          <% %w[lunes martes miercoles jueves viernes sabado domingo].each do |dia| %>
+            <td><%= number_with_precision(plantilla.horario.dig("turno#{num_turno}", dia), precision: 2, default: '0.00') %></td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

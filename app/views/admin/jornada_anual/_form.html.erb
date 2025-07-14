@@ -1,0 +1,32 @@
+<%# Formulario para crear/editar ConfiguracionJornada %>
+<%= form_with(model: [:admin, configuracion], url: configuracion.persisted? ? admin_configuracion_jornada_path(configuracion) : admin_configuracion_jornadas_path) do |form| %>
+  <% if configuracion.errors.any? %>
+    <div class="alert alert-danger">
+      <% configuracion.errors.full_messages.each do |message| %>
+        <div><%= message %></div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= form.label :anio, 'Año de Configuración', class: 'form-label' %>
+    <%= form.number_field :anio, class: 'form-control', placeholder: 'Ej: 2025', required: true %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :horas_maximas, 'Horas Anuales Base', class: 'form-label' %>
+    <%= form.number_field :horas_maximas, class: 'form-control', step: '0.01', placeholder: 'Ej: 1780.00', required: true %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :convenio, 'Convenio / Referencia', class: 'form-label' %>
+    <%= form.text_field :convenio, class: 'form-control', placeholder: 'Ej: Convenio Colectivo...' %>
+  </div>
+
+  <div class="d-flex justify-content-end mt-4">
+    <% if configuracion.persisted? %>
+      <%= link_to 'Cancelar', admin_configuracion_jornadas_path, class: 'btn btn-secondary me-2' %>
+    <% end %>
+    <%= form.submit configuracion.persisted? ? 'Actualizar' : 'Guardar Configuración', class: 'btn btn-primary' %>
+  </div>
+<% end %>

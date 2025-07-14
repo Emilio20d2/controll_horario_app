@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  trabajador: one
+  fecha: 2025-07-08
+  horas_trabajadas: 9.99
+  tipo_ausencia: one
+  horas_ausencia: 9.99
+  pago_doble_marcado: false
+  horas_complementarias_pagadas: 9.99
+
+two:
+  trabajador: two
+  fecha: 2025-07-08
+  horas_trabajadas: 9.99
+  tipo_ausencia: two
+  horas_ausencia: 9.99
+  pago_doble_marcado: false
+  horas_complementarias_pagadas: 9.99

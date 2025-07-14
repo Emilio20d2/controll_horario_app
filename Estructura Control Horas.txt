@@ -1,0 +1,741 @@
+De acuerdo. Aquí tienes el guion técnico completo, desarrollado con el máximo detalle y respetando la estructura del documento original, con todas las adaptaciones para **Ruby on Rails** y la lógica de negocio actualizada para que puedas entregárselo a un programador.
+
+-----
+
+### **Guion Técnico del Sistema de Control Horario – Versión Ruby on Rails**
+
+# \========================================================= **INFORMACIÓN TECNOLÓGICA Y REQUISITOS DEL SISTEMA**
+
+[cite\_start]Este sistema es un **proyecto desarrollado sobre Ruby on Rails**, el framework web de Ruby, y utiliza **PostgreSQL** como sistema gestor de base de datos relacional. [cite: 1]
+
+[cite\_start]**Requisitos mínimos para instalación y despliegue:** [cite: 2]
+
+  * Ruby 3.x o superior
+  * [cite\_start]Rails (versión recomendada: 7.x o superior) [cite: 2]
+  * [cite\_start]PostgreSQL (versión recomendada: 14.x o superior) [cite: 2]
+  * [cite\_start]Acceso a consola y permisos para crear bases de datos y usuarios en PostgreSQL [cite: 2]
+  * [cite\_start]Gestor de versiones de Ruby (como RVM o rbenv) y Bundler recomendados [cite: 2]
+  * [cite\_start]Sistema operativo compatible: Linux (Debian/Ubuntu recomendado), Windows o MacOS [cite: 2]
+
+[cite\_start]**Configuración de la base de datos en `config/database.yml` de Rails:** [cite: 2]
+
+```yaml
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+development:
+  <<: *default
+  database: control_horas_db_development
+  username: emilio
+  password: 456123
+  host: localhost
+  port: 5432
+```
+
+[cite\_start][cite: 2, 3]
+
+# \========================================================= **ARCHIVOS INCLUIDOS EN EL REPOSITORIO GITHUB DEL PROYECTO**
+
+[cite\_start]En el repositorio oficial de GitHub del sistema se incluyen los siguientes archivos fundamentales para el despliegue, uso y auditoría del proyecto: [cite: 3]
+
+1.  **Guion.txt**
+      * [cite\_start]Este documento técnico, donde se recogen toda la estructura, requisitos, lógica y funcionamiento del sistema, incluidas todas las aclaraciones y modificaciones solicitadas por el usuario. [cite: 3]
+2.  **FondoPantalla.jpg**
+      * [cite\_start]Imagen de fondo personalizada que se utiliza para el panel de administración, aportando coherencia visual con la identidad de la empresa. [cite: 4]
+      * [cite\_start]Debe situarse en la ruta: `/app/assets/images/FondoPantalla.jpg` [cite: 5]
+      * [cite\_start]La opacidad y uso se describen en el bloque de estilo visual del Guion. [cite: 5]
+3.  **HORAS 2025.xlsx**
+      * [cite\_start]Archivo Excel de referencia para la **importación de datos históricos**, bolsas iniciales y calendarios laborales. [cite: 6]
+      * [cite\_start]Incluye hojas con los registros semanales confirmados, los turnos y toda la información necesaria para la carga inicial o actualización de empleados. [cite: 7]
+      * [cite\_start]Debe situarse en la carpeta `/lib/import_data/` o en la raíz del proyecto, según los scripts de importación (tareas Rake). [cite: 8]
+
+-----
+
+**IMPORTANTE:**
+
+  * [cite\_start]Todos estos archivos deben subirse y mantenerse actualizados en el repositorio para garantizar una correcta implantación, auditoría y traspaso del sistema entre equipos o responsables. [cite: 9]
+  * [cite\_start]No eliminar ni renombrar estos archivos sin actualizar también la documentación y los scripts correspondientes. [cite: 10]
+
+-----
+
+# \========================================================= **BLOQUE 1 – OBJETIVO GENERAL DEL SISTEMA**
+
+[cite\_start]El sistema de Control Horario es una aplicación web desarrollada sobre **Ruby on Rails**, diseñada para registrar, gestionar y exportar el cómputo de horas trabajadas de todos los empleados de la empresa en base SEMANAL. [cite: 26] [cite\_start]El sistema sustituye cualquier otro modelo de registro diario y pasa a utilizar un formulario único por semana que centraliza todos los datos de la jornada, ausencias y horas complementarias. [cite: 27]
+
+## **OBJETIVOS PRINCIPALES:**
+
+1.  [cite\_start]Centralizar la información de jornada semanal de cada empleado activo en un solo formulario de confirmación. [cite: 28]
+2.  [cite\_start]Controlar la jornada teórica, ausencias y horas complementarias día a día de manera sencilla. [cite: 29]
+3.  [cite\_start]Calcular automáticamente la bolsa de horas ordinaria, bolsa de festivo trabajado y bolsa de libranza. [cite: 30]
+4.  [cite\_start]Permitir la generación de informes en PDF exportables: [cite: 31]
+      * [cite\_start]Informe de confirmaciones semanales por empleado. [cite: 31]
+      * [cite\_start]Informe de ausencias por empleado. [cite: 32]
+      * [cite\_start]Informe global de bolsas. [cite: 32]
+5.  [cite\_start]Mantener la posibilidad de modificar cualquier semana confirmada posteriormente, sin bloqueo definitivo de datos. [cite: 33]
+6.  [cite\_start]Cumplir con requisitos legales y de convenios colectivos en materia de cómputo horario y justificación de ausencias. [cite: 34]
+
+## **PRINCIPIOS DE DISEÑO:**
+
+  * [cite\_start]La confirmación de una semana recalcula automáticamente las bolsas acumuladas del empleado y la coherencia de ausencias y límites anuales. [cite: 41, 42]
+  * [cite\_start]La confirmación no bloquea la edición: es posible volver a abrir y modificar cualquier semana. [cite: 43]
+  * [cite\_start]La interfaz se personaliza visualmente mediante un CSS propio: fondo de pantalla con opacidad, botones personalizados y campos no editables en gris. [cite: 44, 45]
+  * [cite\_start]El sistema es compatible con importación de datos desde hojas Excel predefinidas mediante tareas Rake, con reconocimiento de abreviaturas y validación de valores. [cite: 48, 49]
+  * [cite\_start]La exportación de informes se realiza en formato PDF con tipografía Helvética y diseño corporativo. [cite: 49]
+
+-----
+
+# \========================================================= **BLOQUE 2 – ESTRUCTURA DE MODELOS EN RAILS**
+
+[cite\_start]El sistema se organiza en **tres grupos lógicos de modelos** dentro de la aplicación Rails: [cite: 53]
+
+-----
+
+## **MÓDULO 1 – `personal` (Modelos de Empleado)**
+
+[cite\_start]Contiene la ficha completa de cada empleado y su historial de jornada. [cite: 53]
+
+[cite\_start]**MODELO PRINCIPAL: `Empleado`** [cite: 54]
+
+Campos y comportamiento:
+
+  * `nombre`: `string`. [cite\_start]Obligatorio y único. [cite: 55]
+  * `fecha_alta`: `date`. Obligatorio. [cite\_start]Define la fecha a partir de la cual el empleado está activo. [cite: 57]
+  * `fecha_baja`: `date`. Opcional. [cite\_start]Si se informa, el empleado queda inactivo. [cite: 60]
+  * `tipo_contrato`: `belongs_to :tipo_contrato`. Obligatorio. [cite\_start]Relaciona con un `TipoContrato`. [cite: 62]
+  * `jornada_semanal_actual`: `decimal`. Obligatorio, con incrementos de 0,25. [cite\_start]Define la jornada vigente. [cite: 64]
+  * [cite\_start]`historial_jornada`: Implementado como un modelo asociado (`has_many :historiales_jornada`) que almacena fecha de inicio y jornada en horas. [cite: 66, 67]
+  * [cite\_start]`calendario_laboral`: Implementado como un modelo asociado (`has_many :calendarios_laborales`) con una tabla de 4x7 y fecha de vigencia. [cite: 70, 72]
+  * `bolsas_iniciales`: Campos decimales para `bolsa_ordinaria_inicial`, `bolsa_festivo_trabajado_inicial`, `bolsa_libranza_inicial`. [cite\_start]Son editables al crear el empleado y se inicializan a 0 si no se rellenan. [cite: 76, 77]
+  * [cite\_start]`bolsas_actuales`: Campos decimales no editables (`bolsa_ordinaria_acumulada`, `bolsa_festivo_trabajado_acumulada`, `bolsa_libranza_acumulada`) que se calculan automáticamente tras cada confirmación. [cite: 79, 80]
+
+-----
+
+## **MÓDULO 2 – `configuracion` (Modelos de Lógica)**
+
+[cite\_start]Contiene la definición de contratos y ausencias que configuran la lógica del sistema. [cite: 81]
+
+[cite\_start]**MODELO: `TipoContrato`** [cite: 82]
+
+  * `nombre`: `string`. Obligatorio. [cite\_start]Nombre del contrato (ej: "Indefinido"). [cite: 82, 511]
+  * `computa_bolsa_ordinaria`: `boolean`. Obligatorio. [cite\_start]Define si las horas computan en la bolsa ordinaria. [cite: 512]
+  * `computa_bolsa_festivo`: `boolean`. Obligatorio. [cite\_start]Define si las horas computan en la bolsa de festivo trabajado. [cite: 513]
+  * `computa_bolsa_libranza`: `boolean`. Obligatorio. [cite\_start]Define si las horas trabajadas bajo este contrato se suman a la bolsa de libranza. [cite: 514]
+
+[cite\_start]**MODELO: `TipoAusencia`** [cite: 88]
+
+  * `nombre`: `string`. [cite\_start]Obligatorio. [cite: 88]
+  * `abreviatura`: `string`. Obligatorio. [cite\_start]Código corto para formularios e importaciones. [cite: 89]
+  * `descuenta_jornada`: `boolean`. [cite\_start]Obligatorio. [cite: 90]
+  * `computa_jornada_completa`: `boolean`. [cite\_start]Obligatorio. [cite: 91]
+  * [cite\_start]`afecta_bolsa`: `string` (con validación de valores: "Ordinaria", "Festivo", "Ninguna"). [cite: 92]
+  * `limite_anual_horas`: `integer`. [cite\_start]Opcional. [cite: 93]
+  * `es_fraccionable`: `boolean`. [cite\_start]Obligatorio. [cite: 94]
+
+-----
+
+## **MÓDULO 3 – `fichajes` (Modelos de Registro)**
+
+[cite\_start]Gestiona el registro y confirmación semanal de jornadas. [cite: 97]
+
+[cite\_start]**MODELO: `RegistroSemanal`** [cite: 97]
+
+  * `semana_inicio`: `date`. Obligatorio. Fecha del lunes de la semana. [cite\_start]Un registro semanal centraliza a todos los empleados de esa semana. [cite: 98, 99]
+
+[cite\_start]**MODELO: `DiaRegistro`** [cite: 100]
+
+  * `registro_semanal`: `belongs_to :registro_semanal`. [cite\_start]Obligatorio. [cite: 101]
+  * `empleado`: `belongs_to :empleado`. [cite\_start]Obligatorio. [cite: 101]
+  * `dia_semana`: `integer` (0=lunes, 6=domingo). [cite\_start]Obligatorio. [cite: 101]
+  * `horas_teoricas`: `decimal`. [cite\_start]Obligatorio. [cite: 102]
+  * `tipo_ausencia`: `belongs_to :tipo_ausencia`. [cite\_start]Opcional. [cite: 102]
+  * `horas_ausencia`: `decimal`. [cite\_start]Opcional. [cite: 102]
+  * `horas_complementarias`: `decimal`. [cite\_start]Opcional. [cite: 102]
+  * `pago_doble`: `boolean`. [cite\_start]Opcional. [cite: 103]
+  * `comentario`: `text`. [cite\_start]Opcional. [cite: 103]
+
+-----
+
+# \========================================================= **BLOQUE 10 – IMPORTACIÓN DE DATOS**
+
+## **¿QUÉ ES?**
+
+[cite\_start]El sistema permite importar datos históricos de jornadas semanales a partir de hojas Excel estandarizadas, mediante una **tarea Rake**. [cite: 301] [cite\_start]Sirve para cargar semanas previas y traducir abreviaturas de ausencias. [cite: 302]
+
+## **IDENTIFICACIÓN DEL EMPLEADO**
+
+  * [cite\_start]El sistema identifica al empleado **EXCLUSIVAMENTE por el valor literal de la columna “EMPLEADO”** del archivo Excel. [cite: 305, 497]
+  * [cite\_start]Si el nombre no coincide con un empleado activo, el registro se ignora y se genera un aviso. [cite: 306, 498]
+
+## **TRADUCCIÓN DE ABREVIATURAS**
+
+[cite\_start]Cada abreviatura del Excel se traduce a un `TipoAusencia` según una tabla de mapeo interna (ej: `EX` se convierte en `EXD`). [cite: 307, 491]
+
+## **VALIDACIONES DURANTE LA IMPORTACIÓN**
+
+  * [cite\_start]Ningún valor puede ser negativo ni superar 24h por día. [cite: 309, 500]
+  * [cite\_start]Todas las horas deben estar en incrementos de 0,25. [cite: 312, 500]
+  * [cite\_start]No pueden existir dos ausencias en el mismo día. [cite: 312, 501]
+  * [cite\_start]La bolsa de libranza no puede exceder los 14 días acumulados. [cite: 314, 501]
+  * [cite\_start]Se debe generar un log claro con los errores y advertencias. [cite: 317, 501]
+
+## **FORMATO ESPERADO DE ARCHIVO EXCEL**
+
+[cite\_start]El archivo debe contener columnas como: `Nombre Empleado`, `Semana Inicio`, y para cada día (Lunes a Domingo), las columnas: `Lunes Horas Teóricas`, `Lunes Ausencia`, `Lunes Horas Ausencia`, `Lunes Horas Complementarias`, `Lunes Pago Doble`, `Lunes Comentario`. [cite: 320, 321]
+
+-----
+
+# \========================================================= **BLOQUE 12 – CHECKLIST DE DESPLIEGUE**
+
+## **¿QUÉ ES?**
+
+[cite\_start]Es un listado de comprobaciones a realizar antes de poner el sistema en producción para asegurar que todo funciona según lo definido. [cite: 342]
+
+# **CHECKLIST PASO A PASO**
+
+1.  **REVISIÓN DE TIPOS DE CONTRATO**:
+      * [cite\_start]Confirmar que todos los contratos están creados. [cite: 344]
+      * [cite\_start]Verificar que cada uno tiene su nombre y los **tres campos booleanos** (`computa_bolsa_ordinaria`, `computa_bolsa_festivo`, `computa_bolsa_libranza`) correctamente definidos. [cite: 346, 511, 512, 513, 514]
+2.  **REVISIÓN DE TIPOS DE AUSENCIA**:
+      * [cite\_start]Confirmar que todas las ausencias están creadas con su nombre, abreviatura, lógica de cómputo, límite anual y fraccionabilidad. [cite: 347, 348]
+3.  **REVISIÓN DE EMPLEADOS**:
+      * [cite\_start]Verificar que cada empleado activo tiene nombre único, fecha de alta, contrato asignado, jornada inicial y calendario laboral inicial. [cite: 350, 351, 352]
+4.  **VALIDACIÓN DE LA INTERFAZ**:
+      * [cite\_start]Probar todos los formularios (creación, edición, registro semanal). [cite: 358]
+      * [cite\_start]Confirmar que el estilo visual (colores, tipografía, fondo) se aplica correctamente. [cite: 359, 360]
+5.  **TEST DE CONFIRMACIÓN SEMANAL**:
+      * [cite\_start]Registrar una semana de prueba y verificar que el cálculo de bolsas es correcto y el registro permanece editable. [cite: 361, 362]
+6.  **TEST DE IMPORTACIÓN (TAREA RAKE)**:
+      * [cite\_start]Cargar un Excel de ejemplo y confirmar que los empleados se identifican, las abreviaturas se traducen y las bolsas se recalculan correctamente. [cite: 364, 365, 366]
+7.  **TEST DE EXPORTACIÓN DE INFORMES**:
+      * [cite\_start]Generar los tres tipos de informe en PDF y revisar que el formato, la tipografía Helvética y los datos son correctos. [cite: 367, 368]
+8.  **DOCUMENTACIÓN FINAL**:
+      * [cite\_start]Asegurarse de que el manual técnico y de usuario están completos y actualizados. [cite: 373]
+
+-----
+
+# \========================================================= **ACLARACIONES, RESTRICCIONES Y MODIFICACIONES A ESTE DOCUMENTO**
+
+[cite\_start]Este bloque prevalece sobre cualquier otra sección en caso de conflicto. [cite: 483]
+
+1.  **Tecnología**: El sistema se desarrolla en **Ruby on Rails**. Las referencias a Django, Python o `manage.py` se deben interpretar como sus equivalentes en Rails (Modelos-Vistas-Controladores, tareas Rake, etc.).
+2.  **Lógica de Contratos**: Se **elimina por completo el "factor de proporcionalidad"**. [cite\_start]El modelo `TipoContrato` solo define si un contrato acumula horas en las bolsas `ordinaria`, `festivo` y `libranza` a través de **tres campos booleanos**. [cite: 494, 511, 512, 513, 514, 515]
+3.  [cite\_start]**Formularios**: La ficha del empleado es un **único formulario** en una sola vista. [cite: 484] [cite\_start]El registro de jornada es una **única tabla semanal**. [cite: 495]
+4.  [cite\_start]**Jornada Teórica**: La jornada teórica semanal **no es un campo suelto**, siempre se calcula a partir del calendario laboral vigente del empleado. [cite: 488]
+5.  [cite\_start]**Importación desde Excel**: La identificación del empleado es **exclusivamente por el nombre en la columna "EMPLEADO"**. [cite: 497] [cite\_start]Las validaciones (múltiplos de 0,25, no \>24h/día, etc.) deben ser estrictas. [cite: 500]
+6.  [cite\_start]**Personalización del Admin**: El panel de administración debe ser personalizado completamente: fondo con opacidad 0.75, colores corporativos (\#5F9EA0), botones "Añadir" con fondo blanco y texto negro, y eliminación de elementos superfluos de Rails. [cite: 503, 504]
+7.  [cite\_start]**Idioma**: Todo el sistema, incluyendo el panel de administración, debe estar en **español** con plurales correctos. [cite: 507]
+8.  [cite\_start]**Bolsas Iniciales**: Solo son editables al **crear** el empleado, no en la edición posterior. [cite: 508]
+9.  [cite\_start]**Checklist Final**: Antes de pasar a producción, este bloque de aclaraciones debe ser revisado para asegurar el cumplimiento de todas las instrucciones. [cite: 510]
+
+-----
+
+# \========================================================= **ANEXO – CORRECCIÓN DE LA LÓGICA DE CONTRATOS Y BOLSAS**
+
+## **1. Modelo de `TipoContrato` (corrección obligatoria)**
+
+[cite\_start]El modelo `TipoContrato` debe tener **EXCLUSIVAMENTE** los siguientes campos: [cite: 511]
+
+  * [cite\_start]`nombre`: (`string`, obligatorio) – Nombre del tipo de contrato. [cite: 511]
+  * [cite\_start]`computa_bolsa_ordinaria`: (`boolean`, obligatorio) – Si las horas trabajadas bajo este contrato se suman a la bolsa ordinaria. [cite: 512]
+  * [cite\_start]`computa_bolsa_festivo`: (`boolean`, obligatorio) – Si las horas trabajadas bajo este contrato se suman a la bolsa de festivo trabajado. [cite: 513]
+  * [cite\_start]`computa_bolsa_libranza`: (`boolean`, obligatorio) – Si las horas trabajadas bajo este contrato se suman a la bolsa de libranza. [cite: 514]
+
+[cite\_start]**NO debe existir ningún campo de “factor de proporcionalidad”**. [cite: 515] [cite\_start]Solo estos tres booleanos determinan el destino de las horas trabajadas. [cite: 516]
+
+## **2. Cálculo de bolsas**
+
+[cite\_start]El cálculo de acumulado en cada bolsa dependerá **SOLO** de los campos booleanos definidos en el contrato: [cite: 517]
+
+  * [cite\_start]Si `computa_bolsa_ordinaria` es `True`, las horas se suman a la bolsa ordinaria. [cite: 517]
+  * [cite\_start]Si `computa_bolsa_festivo` es `True`, las horas de festivo trabajado se suman a la bolsa de festivo trabajado. [cite: 518]
+  * [cite\_start]Si `computa_bolsa_libranza` es `True`, las horas se suman a la bolsa de libranza. [cite: 519]
+  * [cite\_start]Si algún campo es `False`, ese contrato **NO** afecta a esa bolsa. [cite: 520]
+
+No existe ningún ajuste proporcional. [cite\_start]La lógica de bolsas debe ser directa y explícita. [cite: 521, 522]
+
+## **3. QA y validación**
+
+[cite\_start]Antes de la entrega, comprobar que el cálculo de bolsas es directo y respeta los valores de los booleanos, sin proporciones ni factores. [cite: 529]
+
+# \========================================================= **FIN DEL DOCUMENTO**
+
+### **ANEXO – SCRIPT DE IMPORTACIÓN DE EMPLEADOS Y CALENDARIOS**
+
+[cite_start]Este comando de management está diseñado para realizar dos operaciones clave[cite: 443]:
+* [cite_start]Importar la lista de empleados y sus bolsas de horas iniciales desde la hoja "HORAS 2024" del archivo `HORAS 2025.xlsx`[cite: 443].
+* [cite_start]Importar el calendario laboral específico de cada empleado desde la hoja "TURNOS" del mismo archivo Excel[cite: 444].
+
+**¿Cómo usarlo?**
+1.  [cite_start]Verifica que el archivo `HORAS 2025.xlsx` se encuentra en la raíz del proyecto[cite: 445].
+2.  [cite_start]Guarda el script como una tarea Rake en la ruta: `personal/management/commands/importar_empleados.rb`[cite: 446].
+3.  [cite_start]Ejecuta el comando en la terminal: `bundle exec rake importar_empleados`[cite: 447].
+
+**Lógica del Script**
+* **Importación de Empleados**:
+    * [cite_start]Lee la hoja `HORAS 2024`[cite: 448].
+    * [cite_start]Por cada fila, crea o actualiza un `Empleado` con su `nombre`[cite: 448].
+    * [cite_start]Asigna por defecto el contrato "Indefinido"[cite: 456].
+    * [cite_start]Establece la `fecha_alta` el 16 de diciembre de 2024[cite: 450, 456].
+    * [cite_start]Toma los valores de las columnas `HORAS TRABAJAS`, `FESTIVOS` y `LIBRANZA` para establecer las bolsas de horas iniciales de cada empleado[cite: 449, 457].
+* **Importación de Calendarios**:
+    * [cite_start]Lee la hoja `TURNOS`[cite: 452].
+    * [cite_start]Para cada empleado, construye una matriz de 4x7 (4 turnos por 7 días) con las horas definidas en las columnas `LUNES TURNO 1`, `MARTES TURNO 1`, etc.[cite: 452, 454].
+    * [cite_start]Guarda este calendario laboral con una fecha de inicio del 16 de diciembre de 2024[cite: 456].
+
+***
+### **ANEXO – SCRIPT DE IMPORTACIÓN DE REGISTROS SEMANALES**
+
+[cite_start]Este script se encarga de importar el historial de jornadas semanales ya confirmadas[cite: 301, 397].
+
+**Funcionalidades principales:**
+* [cite_start]Lee el archivo `HORAS 2025.xlsx`[cite: 397].
+* [cite_start]Procesa únicamente las hojas de cálculo comprendidas entre "S 30 DIC" y "S 16 JUN"[cite: 397, 401].
+* [cite_start]Traduce las abreviaturas de ausencias (ej. 'V' por 'Vacaciones') usando un mapa de equivalencias[cite: 397, 399].
+* [cite_start]Crea los registros `RegistroSemanal` y `DiaRegistro` en la base de datos[cite: 397].
+* [cite_start]Reparte las horas de ausencias parciales como `AJ` (Ausencia Justificada) y `HM` (Horas Médicas) a lo largo de los días de la semana correspondiente[cite: 397].
+
+**¿Cómo usarlo?**
+1.  [cite_start]Asegúrate de tener el archivo `HORAS 2025.xlsx` en la raíz del proyecto[cite: 397].
+2.  [cite_start]Guarda el script en la ruta: `fichajes/management/commands/importar_registros_semanales.rb`[cite: 398].
+3.  [cite_start]Ejecuta el comando: `bundle exec rake importar_registros_semanales`[cite: 398].
+
+***
+### **ANEXO – FESTIVOS Y APERTURAS COMERCIALES PARA 2025**
+
+[cite_start]Estos registros definen las fechas que el sistema utilizará para validar operaciones como el "pago doble" en festivos trabajados[cite: 433, 440]. [cite_start]Se deben cargar en los modelos `configuracion.Festivo` y `configuracion.AperturaComercial`[cite: 433].
+
+**¿Cómo se importan?**
+* [cite_start]**Opción 1 (Recomendada)**: Crear un archivo *fixture* en formato JSON con los datos y cargarlo con el comando `bundle exec rails db:seed` (si se define en el `seeds.rb`) o un comando similar[cite: 438].
+* [cite_start]**Opción 2**: Insertar cada registro manualmente desde el panel de administración de Rails[cite: 439].
+
+**Aperturas Comerciales 2025**
+* [cite_start]5 de enero: Apertura comercial Zaragoza (Reyes)[cite: 435].
+* [cite_start]12 de enero: Apertura comercial Zaragoza (Rebajas Enero)[cite: 435].
+* [cite_start]29 de junio: Apertura comercial Zaragoza (Fin de junio)[cite: 435].
+* [cite_start]7 de septiembre: Apertura comercial Zaragoza (Domingo local)[cite: 435].
+* [cite_start]30 de noviembre: Apertura comercial Zaragoza (Domingo local)[cite: 435].
+* [cite_start]6 de diciembre: Apertura comercial Zaragoza (Constitución)[cite: 435].
+* [cite_start]8 de diciembre: Apertura comercial Zaragoza (Inmaculada)[cite: 435].
+* [cite_start]14 de diciembre: Apertura comercial Zaragoza (Navidad prep.)[cite: 435].
+* [cite_start]21 de diciembre: Apertura comercial Zaragoza (Navidad prep.)[cite: 436].
+* [cite_start]28 de diciembre: Apertura comercial Zaragoza (Navidad prep.)[cite: 436].
+
+**Festivos Oficiales 2025**
+* [cite_start]1 de enero: Año Nuevo[cite: 436].
+* [cite_start]6 de enero: Reyes[cite: 436].
+* [cite_start]14 de abril: Lunes de Pascua[cite: 436].
+* [cite_start]17 de abril: Jueves Santo[cite: 436].
+* [cite_start]18 de abril: Viernes Santo[cite: 436].
+* [cite_start]23 de abril: San Jorge (festivo local)[cite: 436].
+* [cite_start]1 de mayo: Fiesta del Trabajo[cite: 436].
+* [cite_start]30 de mayo: San Valero (festivo local)[cite: 437].
+* [cite_start]15 de agosto: Asunción de la Virgen[cite: 437].
+* [cite_start]12 de octubre: El Pilar (festivo local)[cite: 437].
+* [cite_start]1 de noviembre: Todos los Santos[cite: 437].
+* [cite_start]6 de diciembre: Constitución Española[cite: 437].
+* [cite_start]8 de diciembre: Inmaculada Concepción[cite: 437].
+* [cite_start]25 de diciembre: Navidad[cite: 437].
+
+
+#### **Fondo de Pantalla**
+
+[cite\_start]Se utilizará una imagen de fondo personalizada para dar una identidad visual corporativa a la aplicación[cite: 4, 385].
+
+  * [cite\_start]**Archivo**: `FondoPantalla.jpg`[cite: 4, 385].
+  * [cite\_start]**Ubicación**: La imagen debe situarse en la ruta `/app/assets/images/FondoPantalla.jpg` dentro del proyecto Rails[cite: 5, 390].
+  * [cite\_start]**Opacidad**: La opacidad del fondo de pantalla debe ser del **0.75**[cite: 503].
+  * [cite\_start]**Comportamiento**: La imagen debe permanecer fija durante el desplazamiento (scroll), cubrir toda la ventana del navegador y estar centrada[cite: 296].
+
+**Implementación CSS de ejemplo:**
+
+```css
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; 
+  left: 0;
+  width: 100vw; 
+  height: 100vh;
+  background: url('/assets/FondoPantalla.jpg') no-repeat center center fixed; /* Adaptado para Rails asset pipeline */
+  background-size: cover;
+  opacity: 0.75; [cite_start]/* Valor modificado según instrucción */ [cite: 503]
+  z-index: -1;
+}
+```
+
+[cite\_start][cite: 297, 298, 388, 389]
+
+-----
+
+#### **Tipografía**
+
+  * [cite\_start]**Interfaz Web**: Se utilizará la fuente **Arial** o una fuente Sans-serif estándar[cite: 295]. [cite\_start]El tamaño de la fuente debe ser aumentado para mejorar la legibilidad[cite: 504].
+  * [cite\_start]**Informes PDF**: La fuente será **Helvética**[cite: 295].
+      * [cite\_start]Tamaño de cabeceras: 13-14pt[cite: 295].
+      * [cite\_start]Tamaño del texto en tablas: 11pt[cite: 295].
+
+-----
+
+#### **Paleta de Colores y Estilo de Botones**
+
+  * [cite\_start]**Colores Corporativos**: La barra de navegación principal o elementos destacados usarán el color `#5F9EA0` o `#7e43ff`[cite: 503].
+  * [cite\_start]**Texto**: Todo el texto de la interfaz debe ser de color **negro** (`#222`)[cite: 504, 299]. [cite\_start]Las celdas no editables deben ser visualmente distintas (por ejemplo, con un fondo gris claro) pero manteniendo el texto en negro[cite: 149, 504].
+  * **Botones Principales** (ej. "Guardar", "Confirmar"):
+      * [cite\_start]Fondo: `#90A4AE`[cite: 299].
+      * [cite\_start]Hover (al pasar el ratón): `#5F9EA0`[cite: 299].
+      * [cite\_start]Texto: Blanco[cite: 299].
+      * [cite\_start]Deben tener bordes redondeados[cite: 299].
+  * **Botones "Añadir"**: Según la modificación explícita, estos botones deben tener siempre:
+      * [cite\_start]Fondo: Blanco[cite: 503].
+      * [cite\_start]Icono y texto: Negro[cite: 503].
+  * [cite\_start]**Bordes de Tabla**: Se usará un color gris claro como `#bbb`[cite: 299].
+
+-----
+
+#### **Componentes de Formularios y Celdas**
+
+  * [cite\_start]**Celdas**: Todas las celdas de las tablas de datos (como el calendario laboral) deben ser de tamaño uniforme ("homogéneas")[cite: 505].
+  * [cite\_start]**Inputs Numéricos**: Deben tener bordes claramente definidos para mejorar la usabilidad[cite: 505].
+  * [cite\_start]**Validaciones Visuales**: Los errores de validación deben mostrarse de forma inmediata al usuario[cite: 505]. [cite\_start]Por ejemplo, un campo obligatorio vacío debe tener un borde rojo y un mensaje de error asociado[cite: 300].
+
+-----
+
+#### **Personalización Adicional del Panel de Administración**
+
+Para una interfaz más limpia y centrada en la tarea, se deben eliminar los siguientes elementos del panel de administración de Rails:
+
+  * [cite\_start]El panel de "Acciones Recientes"[cite: 504].
+  * [cite\_start]El enlace de "Ver sitio web"[cite: 504].
+  * [cite\_start]La opción o selector de "Modo oscuro"[cite: 504].
+Claro, aquí tienes el anexo que detalla la lógica de cálculo del sistema, fundamental para el programador.
+
+### **Anexo de Lógica de Cálculo**
+
+Este documento desglosa el proceso paso a paso que el sistema debe seguir para calcular la jornada, aplicar ausencias y actualizar las bolsas de horas de cada empleado. La lógica se basa en los datos del calendario laboral, los tipos de ausencia y, de forma crucial, en los campos booleanos del tipo de contrato del empleado.
+---
+#### **Paso 1: Determinación de la Jornada Teórica Diaria**
+
+La base de todo el cálculo diario son las horas que teóricamente debe trabajar un empleado.
+
+1.  [cite_start]**Obtención del Calendario**: Para una semana determinada, el sistema debe identificar el **calendario laboral activo** del empleado[cite: 124, 352]. Esto se hace buscando el último calendario cuya `fecha_inicio` sea anterior o igual al lunes de esa semana.
+2.  [cite_start]**Cálculo de Horas Teóricas**: Las "Horas Teóricas" de un día se calculan sumando los valores de las 4 celdas de turno correspondientes a ese día de la semana en la matriz 4x7 del calendario[cite: 69, 125, 127].
+3.  [cite_start]**Población del Formulario**: Este valor calculado rellena automáticamente el campo "Horas teóricas" en el formulario de registro semanal para cada día[cite: 198].
+
+**Nota importante**: En este paso no se aplica ningún factor ni ajuste. Las horas teóricas se extraen directamente del calendario del empleado.
+
+---
+#### **Paso 2: Aplicación de la Lógica de Ausencias**
+
+[cite_start]Una vez que se selecciona un tipo de ausencia para un día[cite: 200, 227], el sistema aplica su lógica específica para determinar las horas trabajadas reales. [cite_start]Esta lógica depende de los campos booleanos del `TipoAusencia` seleccionado[cite: 226, 458].
+
+* **Si `computa_jornada_completa` es `true`**:
+    * [cite_start]La ausencia se considera tiempo de trabajo efectivo[cite: 231, 237].
+    * [cite_start]Las horas trabajadas de ese día se consideran iguales a las "Horas Teóricas" completas, independientemente de la ausencia[cite: 462].
+    * [cite_start]**Ejemplos**: Baja Médica (B), Accidente de Trabajo (AT), Maternidad (MA)[cite: 462].
+
+* **Si `descuenta_jornada` es `true`**:
+    * [cite_start]La ausencia reduce la jornada trabajada[cite: 230, 238].
+    * [cite_start]Las "Horas de Ausencia" (el total del día si no es fraccionable, o el valor introducido si `es_fraccionable` es `true` [cite: 234, 240]) se restan de las "Horas Teóricas".
+    * [cite_start]**Ejemplos**: Excedencia (EXD), Vacaciones (V), Asuntos Propios (AP)[cite: 461].
+
+* **Si ambos campos son `false`**:
+    * [cite_start]Las horas trabajadas para ese día se computan como cero[cite: 239].
+
+* [cite_start]**Validación de Límite Anual**: El sistema debe comprobar si la ausencia tiene un `limite_anual_horas`[cite: 233]. [cite_start]Si se supera este límite, se debe mostrar una advertencia al usuario[cite: 241, 313].
+
+---
+#### **Paso 3: Cálculo del Cómputo Final de Horas del Día**
+
+1.  **Horas Efectivas**: Son el resultado del Paso 2 (Horas Teóricas - Horas de Ausencia, si aplica).
+2.  [cite_start]**Horas Complementarias**: Son las horas extra añadidas manualmente por el usuario[cite: 204].
+3.  **Cómputo Total del Día**: El total de horas a considerar para el cálculo de bolsas es: `Horas Efectivas + Horas Complementarias`.
+
+---
+#### **Paso 4: Cálculo y Acumulación en Bolsas de Horas**
+
+Este es el paso final, donde el cómputo de horas del día se traduce en un saldo para las bolsas. [cite_start]Este cálculo depende **exclusivamente** de los tres campos booleanos del `TipoContrato` del empleado[cite: 511, 516, 522].
+
+* **Bolsa Ordinaria**:
+    * Se calcula la diferencia: `(Cómputo Total del Día) - (Horas Teóricas del Día)`.
+    * [cite_start]Este resultado (positivo o negativo) se suma a la bolsa ordinaria del empleado **solo si** el campo `computa_bolsa_ordinaria` de su contrato es `true`[cite: 512, 517, 523].
+
+* **Bolsa de Festivo Trabajado**:
+    * [cite_start]Si se marca la casilla "Pago Doble" en un día festivo validado[cite: 206, 216], las horas trabajadas en ese día se suman a la bolsa de festivo trabajado.
+    * [cite_start]Esto ocurre **solo si** el campo `computa_bolsa_festivo` de su contrato es `true`[cite: 513, 518, 523].
+
+* **Bolsa de Libranza**:
+    * Esta bolsa se gestiona con reglas específicas, generalmente acumulando días por festivos trabajados. [cite_start]El sistema debe validar que no se exceda el **límite de 14 días acumulados por año**[cite: 21, 218, 464, 476].
+    * [cite_start]La acumulación en esta bolsa ocurre **solo si** el campo `computa_bolsa_libranza` de su contrato es `true`[cite: 514, 519, 523].
+
+* [cite_start]**Lógica por Ausencias Especiales**: Ciertos tipos de ausencia afectan directamente a las bolsas [cite: 463-466]:
+    * [cite_start]`DF (Devolución de festivo)`: Resta horas a la bolsa de festivo trabajado[cite: 463].
+    * [cite_start]`LF (Libranza festivo)`: Resta días/horas de la bolsa de libranza[cite: 464].
+    * [cite_start]`DH (Devolución de horas)`: Resta horas a la bolsa ordinaria[cite: 465].
+
+---
+#### **Paso 5: Consolidación Semanal**
+
+[cite_start]Al pulsar el botón "Confirmar" para la semana de un empleado[cite: 212], el sistema realiza lo siguiente:
+1.  Ejecuta los cálculos de los Pasos 1 a 4 para cada uno de los siete días de la semana.
+2.  Suma los resultados diarios para obtener el cambio neto semanal de cada bolsa.
+3.  [cite_start]Actualiza los saldos de `bolsa_ordinaria_acumulada`, `bolsa_festivo_trabajado_acumulada` y `bolsa_libranza_acumulada` del empleado, guardando el nuevo total en la base de datos[cite: 80, 140, 213].
+
+
+### **Anexo de Estructura y Comportamiento de Formularios**
+
+Este documento describe la estructura, los campos, las validaciones y el comportamiento esperado de los formularios principales de la aplicación. Esta guía está destinada al desarrollador para asegurar que la implementación de la interfaz de usuario sea fiel a los requisitos funcionales.
+
+---
+#### **Formulario 1: Ficha del Empleado (Edición)**
+
+[cite_start]**Objetivo**: Proporcionar una vista **única y unificada** para consultar y modificar todos los datos de un empleado existente[cite: 108, 484]. [cite_start]El formulario no debe estar dividido en pestañas o secciones separadas; toda la información se presenta en una sola vista vertical[cite: 485].
+
+De acuerdo. Aquí tienes el anexo final que detalla la estructura de los informes, las reglas de negocio críticas y el checklist de despliegue, tal y como se especifica en el guion.
+
+### **Anexo de Informes, Reglas de Negocio y Despliegue**
+
+Este documento complementa el guion técnico principal y está destinado a proporcionar al desarrollador las especificaciones detalladas sobre tres áreas clave: la generación de informes en PDF, las reglas de negocio que rigen el comportamiento de las ausencias y las bolsas, y el listado de comprobaciones finales antes de la puesta en producción del sistema.
+
+---
+#### **1. Estructura Detallada de Informes PDF**
+
+[cite_start]El sistema debe generar tres tipos de informes en formato PDF, con un diseño y formato homogéneos[cite: 264, 331].
+
+**Formato General (Aplicable a todos los informes):**
+* [cite_start]**Tipografía**: Helvética[cite: 266, 288].
+* **Tamaños**:
+    * [cite_start]Cabeceras de informe: 13–14 pt[cite: 288, 295].
+    * [cite_start]Texto en tablas: 11 pt[cite: 288, 295].
+* **Colores**:
+    * [cite_start]Encabezados de tabla: Fondo de color `#5F9EA0`[cite: 288].
+    * [cite_start]Bordes de tabla: Gris claro (`#bbb`)[cite: 288].
+    * [cite_start]Texto: Negro[cite: 288].
+* **Formato de Archivo**:
+    * [cite_start]Papel: A4 con márgenes estándar[cite: 288, 334].
+    * [cite_start]Nombre del archivo: `Informe_Tipo_Empleado_Fecha.pdf`[cite: 289, 334].
+* [cite_start]**Auditoría**: Cada generación de informe debe quedar registrada en un log, indicando el usuario, la fecha y los filtros aplicados[cite: 290, 369].
+
+**Informe 1: Confirmaciones Semanales por Empleado**
+* [cite_start]**Filtros**: Empleado (selector) y Rango de semanas (fecha de inicio y fin)[cite: 270, 332].
+* **Estructura del PDF**:
+    * [cite_start]**Cabecera**: Logo de la empresa, nombre del empleado, periodo del informe y fecha de generación[cite: 271].
+    * **Cuerpo**: Un bloque por cada semana que incluye:
+        * [cite_start]Tabla de 7 columnas (Lunes a Domingo) con el detalle de: Horas teóricas, Ausencia aplicada, Horas de ausencia, Horas complementarias y si hubo Pago doble (Sí/No)[cite: 273, 274].
+    * [cite_start]**Resumen Semanal**: Totales de horas teóricas, trabajadas, complementarias y el estado de las bolsas al cierre de esa semana[cite: 275, 276].
+    * [cite_start]**Pie de Página**: Bolsa inicial al comienzo del periodo y bolsa final al término del periodo[cite: 277].
+
+**Informe 2: Ausencias por Empleado**
+* [cite_start]**Filtros**: Empleado (selector) y Rango de fechas[cite: 279, 332].
+* **Estructura del PDF**:
+    * [cite_start]**Cabecera**: Nombre del empleado, periodo del informe y fecha de generación[cite: 280].
+    * [cite_start]**Cuerpo**: Una única tabla con las siguientes columnas: Fecha, Día de la semana, Tipo de ausencia, Horas de ausencia y Comentario justificativo[cite: 281].
+    * [cite_start]**Totales al final**: Número total de ausencias y suma total de horas justificadas[cite: 282].
+
+**Informe 3: Global de Bolsas**
+* **Filtros**: Ninguno es obligatorio. [cite_start]Opcionalmente, se puede incluir a los empleados inactivos[cite: 283, 332].
+* **Estructura del PDF**:
+    * [cite_start]**Cabecera**: Logo de la empresa y fecha de generación[cite: 284].
+    * [cite_start]**Cuerpo**: Una tabla con todos los empleados y las siguientes columnas: Nombre del empleado, Tipo de contrato, Jornada semanal actual, Bolsa ordinaria, Bolsa festivo trabajado y Bolsa libranza[cite: 285, 286].
+    * [cite_start]**Totales al final (Opcional)**: Suma global de cada una de las bolsas[cite: 287].
+
+---
+#### **2. Reglas de Negocio para Ausencias y Bolsas de Horas**
+
+Para garantizar la integridad de los datos, el sistema debe aplicar las siguientes reglas de negocio de forma estricta:
+
+* [cite_start]**Definición de Ausencias**: Toda ausencia debe estar definida en el modelo `TipoAusencia`, especificando su abreviatura, nombre, lógica de cómputo (si descuenta o computa jornada), fraccionabilidad, límite anual y a qué bolsa afecta[cite: 458].
+* **Prohibición de "Según Convenio"**: El sistema no debe contener valores genéricos. [cite_start]Cada límite anual de ausencia debe ser un valor numérico concreto y editable en la configuración (ej: 12 horas, 2 días), nunca un texto como "según convenio"[cite: 467, 468].
+* [cite_start]**Ausencias que Afectan a Bolsas**: Ciertas ausencias tienen un comportamiento especial que modifica directamente las bolsas [cite: 463-466]:
+    * [cite_start]**DF (Devolución de festivo)**: Suma horas a la bolsa de festivo trabajado[cite: 463].
+    * [cite_start]**LF (Libranza festivo)**: Descuenta días/horas de la bolsa de libranza[cite: 464].
+    * [cite_start]**DH (Devolución de horas)**: Suma horas a la bolsa ordinaria[cite: 465].
+    * [cite_start]**PNR (Permiso no retribuido), AP (Asuntos propios), AI (Ausencia injustificada)**: Pueden ser configuradas para descontar horas de la bolsa ordinaria[cite: 466].
+* [cite_start]**Validación de Límites de Bolsas**: El sistema debe impedir que un empleado disfrute de más horas o días de los que tiene acumulados[cite: 476]. [cite_start]Específicamente, para la bolsa de libranza, existe un **máximo de 14 días acumulados por año**[cite: 218, 464, 476].
+* [cite_start]**Auditoría de Bolsas**: Toda operación que sume o reste horas de cualquier bolsa debe quedar registrada para permitir una auditoría completa[cite: 477].
+
+---
+#### **3. Checklist de Despliegue**
+
+[cite_start]Esta lista debe ser revisada y completada antes de la puesta en producción del sistema[cite: 342, 343].
+
+1.  [cite_start]**Revisión de Tipos de Contrato**: Confirmar que todos los contratos están creados con sus tres campos booleanos (`computa_bolsa_ordinaria`, `computa_bolsa_festivo`, `computa_bolsa_libranza`) correctamente definidos [cite: 344-346].
+2.  [cite_start]**Revisión de Tipos de Ausencia**: Verificar que todas las ausencias están configuradas con su nombre, abreviatura, lógica de cómputo, límite anual y fraccionabilidad [cite: 347-349].
+3.  [cite_start]**Revisión de Empleados**: Asegurar que cada empleado activo tiene sus datos iniciales correctos: nombre único, fecha de alta, contrato, jornada y calendario laboral [cite: 350-352].
+4.  [cite_start]**Validación de la Interfaz**: Probar todos los formularios (login, listados, creación, edición y registro semanal) y confirmar que el estilo visual (colores, fondo, botones) es correcto [cite: 358-361].
+5.  [cite_start]**Test de Confirmación Semanal**: Registrar una semana de prueba, confirmar los datos de un empleado y verificar que el cálculo de bolsas es correcto y que el registro permanece editable [cite: 361-363].
+6.  [cite_start]**Test de Importación**: Ejecutar la tarea Rake de importación con un Excel de ejemplo y confirmar que los empleados se identifican, las abreviaturas se traducen y las bolsas se recalculan adecuadamente [cite: 364-366].
+7.  [cite_start]**Test de Exportación de Informes**: Generar los tres tipos de informe en PDF y revisar que el formato, la tipografía Helvética, las cabeceras y los datos son correctos [cite: 366-368].
+8.  [cite_start]**Configuración de Logs y Auditoría**: Confirmar que las importaciones y la generación de informes quedan registradas correctamente[cite: 369].
+9.  [cite_start]**Test de Usuario Final**: Facilitar un acceso de prueba a un responsable para que realice un flujo completo: crear un empleado, confirmar una semana y exportar un informe, documentando cualquier incidencia [cite: 370-372].
+10. [cite_start]**Documentación Final**: Guardar una copia de este checklist cumplimentado junto con el manual técnico y el manual de usuario final[cite: 373, 374].
+
+**Estructura y Secciones**:
+El formulario se compone de las siguientes secciones ordenadas:
+
+1.  [cite_start]**Datos Personales**[cite: 110]:
+    * `Nombre`: Campo de texto, editable y obligatorio. [cite_start]No puede estar vacío ni duplicado[cite: 110].
+    * `Fecha de Alta`: Selector de fecha, editable y obligatorio. [cite_start]No puede ser posterior a la fecha de baja[cite: 111, 112].
+    * `Fecha de Baja`: Selector de fecha, editable y opcional. [cite_start]Si se informa, debe ser posterior a la fecha de alta y el empleado pasará a estado inactivo[cite: 113, 114].
+
+2.  [cite_start]**Tipo de Contrato**[cite: 115]:
+    * [cite_start]`Tipo de Contrato`: Selector desplegable ancho, obligatorio[cite: 115, 117]. [cite_start]Al cambiar la selección, el sistema debe recalcular la lógica de acumulación de bolsas para futuros registros[cite: 116].
+
+3.  [cite_start]**Jornada Semanal y su Historial**[cite: 119]:
+    * [cite_start]`Jornada Semanal Actual`: Campo numérico (decimal, con incrementos de 0,25), editable y obligatorio[cite: 119].
+    * [cite_start]`Historial de Jornadas`: Se visualiza como una tabla que muestra los cambios de jornada a lo largo del tiempo, con "Fecha de inicio" y "Jornada semanal"[cite: 120, 122]. [cite_start]Se pueden añadir nuevas entradas para registrar futuros cambios de jornada[cite: 119].
+
+4.  [cite_start]**Calendario Laboral**[cite: 124]:
+    * [cite_start]**Visualización**: Una tabla literal de 4 filas (Turno 1 a Turno 4) por 7 columnas (Lunes a Domingo)[cite: 125, 489].
+    * [cite_start]**Celdas**: Cada celda es un campo numérico editable (decimal, con incrementos de 0,25)[cite: 126, 489].
+    * [cite_start]**Validación**: La suma de las horas de los 4 turnos de un mismo día no puede superar 24 horas[cite: 129, 490].
+    * [cite_start]**Vigencia**: Incluye un campo de "Fecha de inicio de vigencia" (selector de fecha) que es obligatorio[cite: 127].
+
+5.  [cite_start]**Bolsas de Horas (Acumuladas)**[cite: 140]:
+    * **Campos**: Muestra los saldos de "Bolsa ordinaria acumulada", "Bolsa festivo trabajado acumulada" y "Bolsa libranza acumulada".
+    * [cite_start]**Comportamiento**: Estos campos son **no editables** y se muestran con texto en color gris (#888) para indicar que son de solo lectura[cite: 80, 140, 149]. Se actualizan automáticamente con cada confirmación semanal.
+
+6.  [cite_start]**Bolsas Iniciales**[cite: 141]:
+    * **Comportamiento**: En este formulario de edición, las bolsas iniciales se muestran pero **no son editables**. [cite_start]Solo se pueden establecer al crear el empleado[cite: 508].
+
+**Comportamiento General**:
+* [cite_start]Un único botón "Guardar" al final del formulario aplica todos los cambios a la vez[cite: 143].
+* [cite_start]Las validaciones se ejecutan antes de guardar, y los errores se muestran junto a los campos correspondientes[cite: 144, 145].
+
+---
+#### **Formulario 2: Formulario de Creación de Nuevo Empleado**
+
+[cite_start]**Objetivo**: Dar de alta un empleado nuevo con toda la información inicial necesaria para que el sistema pueda operar correctamente con él[cite: 152].
+
+**Estructura y Campos Obligatorios**:
+Este formulario contiene las mismas secciones que la ficha de edición, pero todos los campos son para establecer los valores iniciales.
+
+* **Campos Obligatorios**:
+    * [cite_start]`Nombre`[cite: 154].
+    * [cite_start]`Fecha de Alta`[cite: 156].
+    * [cite_start]`Tipo de Contrato`[cite: 160].
+    * [cite_start]`Jornada Semanal Inicial`[cite: 164].
+    * [cite_start]`Calendario Laboral Inicial` (tanto la tabla 4x7 como la fecha de inicio)[cite: 167, 169].
+* **Bolsas Iniciales**:
+    * [cite_start]En este formulario, los campos de "Bolsa ordinaria inicial", "Bolsa festivo trabajado inicial" y "Bolsa libranza inicial" **son editables**[cite: 181, 508].
+    * [cite_start]No son obligatorios; si se dejan vacíos, se inicializan a 0[cite: 181]. [cite_start]Deben ser valores numéricos mayores o iguales a cero y con incrementos de 0,25[cite: 181].
+
+**Comportamiento al Crear**:
+* [cite_start]Al pulsar "Crear Empleado", se guarda el nuevo empleado, se crea su primer registro en el historial de jornada, se almacena su calendario laboral inicial y se fijan sus bolsas iniciales[cite: 186, 187].
+
+---
+#### **Formulario 3: Formulario de Registro Semanal**
+
+[cite_start]**Objetivo**: Es el formulario principal de la aplicación, donde se registra y confirma la jornada de **todos los empleados activos** para una semana concreta[cite: 191]. [cite_start]Se presenta como una única tabla grande[cite: 495].
+
+**Estructura de la Tabla**:
+* [cite_start]**Filas**: Una fila por cada empleado activo en esa semana[cite: 192].
+* [cite_start]**Columnas**: Empleado, Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo, Bolsas, Confirmar[cite: 20, 195].
+
+**Estructura de cada Celda de Día**:
+[cite_start]Cada celda correspondiente a un día de la semana contiene 6 campos de formulario dispuestos verticalmente[cite: 196]:
+
+1.  [cite_start]**Horas Teóricas**: Campo numérico (pasos de 0,25), autocompletado a partir del calendario del empleado pero editable[cite: 198].
+2.  [cite_start]**Selector de Ausencia**: Menú desplegable con todos los `TipoAusencia` configurados[cite: 200].
+3.  [cite_start]**Horas de Ausencia**: Campo numérico (pasos de 0,25), que se habilita solo si la ausencia seleccionada es fraccionable[cite: 203, 242].
+4.  [cite_start]**Horas Complementarias**: Campo numérico (pasos de 0,25) para añadir horas extra[cite: 204].
+5.  [cite_start]**Checkbox "Pago Doble"**: Casilla de verificación que solo está habilitada si el día es un festivo oficial[cite: 206, 216].
+6.  [cite_start]**Comentario Justificativo**: Campo de texto opcional[cite: 208].
+
+**Columnas Especiales**:
+* **Columna "Bolsas"**: Muestra el estado actualizado de las tres bolsas (O, F, L) para ese empleado. [cite_start]No es editable[cite: 210, 211].
+* [cite_start]**Columna "Confirmar"**: Contiene un botón individual para cada empleado/fila[cite: 212]. [cite_start]Al pulsarlo, se valida y guarda únicamente la información de esa fila[cite: 213].
+
+**Comportamiento General**:
+* La confirmación de una semana **no la bloquea**. [cite_start]Siempre es posible volver a editar y guardar los datos[cite: 33, 194, 214].
+* [cite_start]El sistema aplica validaciones estrictas en tiempo real o al confirmar, como no permitir que el total de horas de un día exceda las teóricas, que se marque pago doble en un día no festivo, o que se supere el límite de 14 días en la bolsa de libranza[cite: 21, 496].
+
+================================================================================
+ANEXO DE TIPOS DE AUSENCIA Y CÓMPUTO
+================================Causas del Accidente================================
+
+Este anexo sirve como guía de referencia para el programador. Detalla todas las ausencias definidas en el guion, sus abreviaturas para la importación de datos y la lógica de negocio que determina cómo afectan a la jornada laboral y a las bolsas de horas.
+
+---
+Principios Generales de Cómputo
+---
+
+* **Computa Jornada Completa**: La ausencia se considera tiempo de trabajo efectivo. Las horas teóricas del día se suman al cómputo de horas trabajadas.
+* **Descuenta Jornada**: La ausencia no se considera tiempo de trabajo. Las horas de ausencia se restan de la jornada teórica para calcular las horas trabajadas reales.
+* **Afecta a Bolsa**: La ausencia modifica directamente el saldo de una de las bolsas de horas (Ordinaria, Festivo o Libranza).
+
+---
+Tabla de Ausencias
+---
+
+Abreviatura(s) | Nombre Completo                  | Cómo Computa la Jornada        | Notas Adicionales (Fraccionable, Límite, Afecta Bolsa)
+-----------------------------------------------------------------------------------------------------------------------------------------------
+AT               | Accidente de Trabajo             | Computa la jornada completa.   | [cite_start]No fraccionable. [cite: 235]
+AP               | Asuntos Propios                  | [cite_start]Descuenta la jornada. [cite: 461]         | [cite_start]Puede descontar de la bolsa ordinaria si así se configura. [cite: 466]
+AI               | Ausencia Injustificada           | [cite_start]Descuenta la jornada. [cite: 461]         | [cite_start]Puede descontar de la bolsa ordinaria si así se configura. [cite: 466]
+AJ               | Ausencia Justificada             | [cite_start]Descuenta la jornada. [cite: 238]         |
+B / BJA          | Baja Médica (IT)                 | Computa la jornada completa.   | [cite_start]No fraccionable. [cite: 235]
+DS / DL          | Deber Público / Legal            | [cite_start]Descuenta la jornada. [cite: 238]         | [cite_start]Fraccionable. [cite: 237]
+DF               | Devolución Festivo               | [cite_start]Descuenta la jornada. [cite: 461]         | No fraccionable. [cite_start]Suma horas a la bolsa de festivo trabajado. [cite: 463]
+DH               | Devolución Horas                 | [cite_start]Descuenta la jornada. [cite: 461]         | No fraccionable. [cite_start]Suma horas a la bolsa ordinaria. [cite: 465]
+EG               | Enfermedad Grave                 | [cite_start]Descuenta la jornada. [cite: 238]         |
+EX / EXD         | Excedencia                       | [cite_start]Descuenta la jornada. [cite: 238]         | No afecta a las bolsas. [cite_start]No fraccionable. [cite: 22]
+EO / EXO         | Exámenes Oficiales               | [cite_start]Descuenta la jornada. [cite: 238]         | [cite_start]Fraccionable. [cite: 235]
+FF               | Fallecimiento Familiar           | [cite_start]Descuenta la jornada. [cite: 238]         | No afecta a las bolsas. [cite_start]No fraccionable. [cite: 22]
+FR               | Formación                        | [cite_start]Descuenta la jornada. [cite: 238]         |
+HM               | Horas Médicas (Personal)         | [cite_start]Descuenta la jornada. [cite: 238]         | Fraccionable. [cite_start]Límite de 12 horas/año. [cite: 23]
+HMM              | Horas Médicas (Acompañar Menor)  | [cite_start]Descuenta la jornada. [cite: 238]         | Fraccionable. [cite_start]Límite de 16 horas/año. [cite: 236]
+HS               | Horas Sindicales                 | [cite_start]Descuenta la jornada. [cite: 238]         | [cite_start]Fraccionable. [cite: 22]
+LAC              | Lactancia                        | Computa la jornada completa.   |
+LF               | Libranza Festivo                 | [cite_start]Descuenta la jornada. [cite: 461]         | No fraccionable. [cite_start]Descuenta de la bolsa de libranza (límite 14 días/año). [cite: 464]
+MA               | Maternidad / Paternidad          | Computa la jornada completa.   |
+MAT              | Matrimonio                       | [cite_start]Descuenta la jornada. [cite: 238]         |
+PNR              | Permiso No Retribuido            | [cite_start]Descuenta la jornada. [cite: 461]         | [cite_start]Puede descontar de la bolsa ordinaria si así se configura. [cite: 466]
+RJS              | Reducción Jornada Senior         | Computa la jornada completa.   | No afecta a las bolsas. [cite_start]No fraccionable. [cite: 22]
+V                | Vacaciones                       | [cite_start]Descuenta la jornada. [cite: 461]         |
+
+Claro, aquí tienes un anexo que describe la estructura recomendada para el menú de navegación de la aplicación, basado en las funcionalidades descritas en el guion.
+
+### **Anexo de Estructura del Menú de Navegación**
+
+Este anexo define la estructura lógica del menú principal de la aplicación. El objetivo es proporcionar una navegación intuitiva y eficiente, permitiendo al usuario acceder a todas las funcionalidades clave del sistema de manera organizada. El menú debe ser visible en todas las páginas después de iniciar sesión.
+
+---
+#### **Estructura Jerárquica del Menú**
+
+Se propone un menú principal con las siguientes secciones. Algunos elementos pueden tener sub-menús desplegables para agrupar funcionalidades relacionadas.
+
+1.  **Registro Semanal**
+    * Este es el enlace principal y más importante de la aplicación.
+    * **Comportamiento**: Al hacer clic, dirige al usuario directamente al formulario de **Registro Semanal** de la semana en curso. Debe haber controles claros para navegar a semanas anteriores o futuras.
+
+2.  **Empleados**
+    * Este es un menú desplegable que agrupa la gestión de los empleados.
+    * **Sub-menú**:
+        * **Listado de Empleados**:
+            * **Función**: Muestra una lista simple con los nombres de todos los empleados activos. [cite_start]Según la especificación, en este listado solo debe aparecer el campo **NOMBRE**[cite: 506].
+            * **Comportamiento**: Cada nombre en la lista es un enlace que dirige a la **Ficha del Empleado** (el formulario de edición) correspondiente.
+        * **Crear Nuevo Empleado**:
+            * **Función**: Un enlace directo que lleva al **Formulario de Creación de Nuevo Empleado**.
+
+3.  **Informes**
+    * Un menú desplegable para acceder a las diferentes opciones de exportación en PDF.
+    * **Sub-menú**:
+        * [cite_start]**Confirmaciones Semanales**: Dirige a la página para generar el informe de confirmaciones por empleado, donde se seleccionan el empleado y el rango de semanas[cite: 267].
+        * [cite_start]**Ausencias por Empleado**: Dirige a la página para generar el informe de ausencias, donde se seleccionan el empleado y el rango de fechas[cite: 278].
+        * [cite_start]**Global de Bolsas**: Dirige a la página para generar el informe global de bolsas de todos los empleados[cite: 283].
+
+4.  **Configuración** (Visible para roles de administrador)
+    * Un menú desplegable que centraliza todas las tareas administrativas y de configuración del sistema.
+    * **Sub-menú**:
+        * [cite_start]**Tipos de Contrato**: Lleva a la interfaz para crear, ver y editar los diferentes `Tipos de Contrato` y sus campos booleanos de cómputo de bolsas[cite: 493].
+        * [cite_start]**Tipos de Ausencia**: Lleva a la interfaz para gestionar los `Tipos de Ausencia`, sus abreviaturas, límites y lógica de cómputo[cite: 492].
+        * [cite_start]**Festivos y Aperturas**: Permite gestionar el calendario de días festivos y aperturas comerciales autorizadas para el año en curso[cite: 433].
+        * [cite_start]**Importación de Datos**: Acceso a la herramienta para subir el archivo Excel (`HORAS 2025.xlsx`) y ejecutar las tareas de importación de datos históricos[cite: 301].
+
+---
+#### **Comportamiento Visual**
+
+* El menú debe adherirse al **Estilo Visual Unificado**, utilizando la tipografía Arial y los colores corporativos definidos (ej. `#5F9EA0` o `#7e43ff` para la barra de navegación).
+* El elemento del menú correspondiente a la página activa debe estar visualmente destacado (ej. en negrita o con un color de fondo diferente).

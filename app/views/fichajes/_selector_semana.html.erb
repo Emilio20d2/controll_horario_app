@@ -1,0 +1,16 @@
+<div class="container my-4 p-3 bg-light rounded border">
+  <!-- Título de la semana (Centrado) -->
+  <div class="text-center mb-3">
+    <h3 class="mb-0">
+      Semana del <%= l @fecha_lunes, format: :long %> al <%= l(@fecha_lunes + 6.days, format: :long) %>
+    </h3>
+  </div>
+
+  <!-- Selector de fecha con botón (Centrado) -->
+  <div class="d-flex justify-content-center">
+    <%= form_with(url: fichajes_semanal_path, method: :get, class: "d-flex gap-2") do |form| %>
+      <%= form.date_field :fecha, value: @fecha_lunes, class: "form-control" %>
+      <%= form.submit "Ir", class: "btn-primary" %>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,13 @@
+/* Importa los estilos de Bootstrap.
+ * El fichero debe tener la extensión .scss para que @import funcione.
+ * Las directivas *= require_tree . y *= require_self han sido eliminadas
+ * para evitar conflictos con la importación de SASS.
+*/
+
+// 1. Define tus variables personalizadas de Bootstrap ANTES de importarlo.
+$primary: #869495; // Este será tu nuevo color primario corporativo.
+
+@import "bootstrap"; // 2. Importa Bootstrap para que use tus variables.
+
+// Importa nuestros estilos personalizados.
+@import "custom"; // 3. Importa el resto de tus estilos.

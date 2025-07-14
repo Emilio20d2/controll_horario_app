@@ -1,0 +1,11 @@
+<div class="container jornada-anual-config-page">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Editar Configuración para el Año <%= @configuracion.anio %></h1>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <%= render 'form', configuracion: @configuracion %>
+    </div>
+  </div>
+</div>

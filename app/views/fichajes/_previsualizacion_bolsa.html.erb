@@ -1,0 +1,35 @@
+<%#
+  Este partial renderiza la previsualización en tiempo real de los cálculos de la semana.
+  Se llama desde el controlador `FichajesController#previsualizar`.
+
+  Recibe dos variables locales:
+  - previsualizacion: El hash con los resultados de la simulación del ProcesadorSemanaService.
+  - trabajador: La instancia del trabajador (actualmente no se usa, pero se mantiene por si se necesita en el futuro).
+%>
+
+<%# Si no hay datos de previsualización o hay un error, no mostramos nada. %>
+<% return unless previsualizacion.present? && previsualizacion[:cambios_semanales_por_bolsa] %>
+
+<% cambios = previsualizacion[:cambios_semanales_por_bolsa] %>
+<% total_horas = previsualizacion[:total_horas_computadas_semana] %>
+
+<div class="pt-2">
+  <ul class="list-unstyled m-0" style="font-size: 0.85em;">
+    <li class="d-flex justify-content-between align-items-center mb-1">
+      <span>TOTAL HORAS:</span>
+      <strong class="d-inline-block text-end border rounded" style="width: 70px; padding: 0.25rem 0.5rem; background-color: white; min-height: 31px;"><%= number_with_precision(total_horas, precision: 2) %></strong>
+    </li>
+    <li class="d-flex justify-content-between align-items-center mb-1">
+      <span>Horas Trabajadas:</span>
+      <strong class="d-inline-block text-end border rounded" style="width: 70px; padding: 0.25rem 0.5rem; background-color: white; min-height: 31px;"><%= number_with_precision(cambios[:horas_normales], precision: 2) %></strong>
+    </li>
+    <li class="d-flex justify-content-between align-items-center mb-1">
+      <span>Festivo Trabajado:</span>
+      <strong class="d-inline-block text-end border rounded" style="width: 70px; padding: 0.25rem 0.5rem; background-color: white; min-height: 31px;"><%= number_with_precision(cambios[:festivo_trabajado], precision: 2) %></strong>
+    </li>
+    <li class="d-flex justify-content-between align-items-center">
+      <span>Libranza Festivo:</span>
+      <strong class="d-inline-block text-end border rounded" style="width: 70px; padding: 0.25rem 0.5rem; background-color: white; min-height: 31px;"><%= number_with_precision(cambios[:festivo_libranza], precision: 2) %></strong>
+    </li>
+  </ul>
+</div>

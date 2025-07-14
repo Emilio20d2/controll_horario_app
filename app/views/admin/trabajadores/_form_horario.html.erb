@@ -1,0 +1,33 @@
+<%#
+  Este parcial renderiza una tabla para definir un horario rotativo de 4 turnos.
+  Recibe una variable local `horario_actual` que es un hash con los valores
+  para pre-rellenar el formulario.
+%>
+<div class="table-responsive">
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th class="text-left">Turno</th>
+        <th>Lunes</th>
+        <th>Martes</th>
+        <th>Miércoles</th>
+        <th>Jueves</th>
+        <th>Viernes</th>
+        <th>Sábado</th>
+        <th>Domingo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% (1..4).each do |turno_num| %>
+        <tr>
+          <td class="text-left font-weight-bold">Turno <%= turno_num %></td>
+          <% %w[lunes martes miercoles jueves viernes sabado domingo].each do |dia| %>
+            <td class="dia-celda">
+              <%= number_field_tag "horario[turno#{turno_num}][#{dia}]", horario_actual.dig("turno#{turno_num}", dia), class: 'form-control', step: '0.25', min: 0 %>
+            </td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

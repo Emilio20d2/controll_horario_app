@@ -1,0 +1,69 @@
+<%# app/views/admin/asignacion_turnos/new.html.erb %>
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header">
+      <h3>Cambiar Horario para <%= @trabajador.nombre %></h3>
+    </div>
+    <div class="card-body">
+      <%# De nuevo, es clave usar el namespace :admin para la URL del formulario %>
+      <%= form_with(model: [:admin, @trabajador, @asignacion_turno], local: true) do |form| %>
+        <% if @asignacion_turno.errors.any? %>
+          <div id="error_explanation" class="alert alert-danger">
+            <h4><%= pluralize(@asignacion_turno.errors.count, "error") %> impidieron guardar la asignación:</h4>
+            <ul>
+              <% @asignacion_turno.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div class="mb-3">
+          <%= form.label :fecha_inicio, "Fecha de inicio del nuevo horario", class: "form-label" %>
+          <%= form.date_field :fecha_inicio, class: "form-control", required: true %>
+          <div class="form-text">Esta fecha determinará el fin de la asignación de horario anterior.</div>
+        </div>
+
+        <div class="mb-3">
+          <h5 class="mt-4">Definir Horario Semanal</h5>
+          <p class="form-text">Introduce las horas para cada día en la rotación de 4 turnos. El horario actual se muestra como punto de partida.</p>
+          <div class="table-responsive">
+            <table class="table table-bordered text-center">
+              <thead class="table-light">
+                <tr>
+                  <th>Turno</th>
+                  <% %w[Lunes Martes Miércoles Jueves Viernes Sábado Domingo].each do |dia| %>
+                    <th><%= dia %></th>
+                  <% end %>
+                </tr>
+              </thead>
+              <tbody>
+                <% (1..4).each do |turno_num| %>
+                  <tr>
+                    <td class="fw-bold">Turno <%= turno_num %></td>
+                    <% %w[lunes martes miercoles jueves viernes sabado domingo].each do |dia_key| %>
+                      <td>
+                        <%# El nombre del campo está estructurado para ser leído fácilmente en el controlador %>
+                        <%= number_field_tag "horario[turno#{turno_num}][#{dia_key}]",
+                                             @horario_actual.dig("turno#{turno_num}", dia_key),
+                                             class: 'form-control form-control-sm text-center',
+                                             step: :any,
+                                             min: 0,
+                                             max: 24 %>
+                      </td>
+                    <% end %>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between">
+          <%= form.submit "Asignar Nuevo Horario", class: "btn btn-primary" %>
+          <%= link_to "Cancelar", admin_trabajador_path(@trabajador), class: "btn btn-secondary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

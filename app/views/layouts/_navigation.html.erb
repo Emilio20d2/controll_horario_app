@@ -1,0 +1,28 @@
+<%# app/views/layouts/_navigation.html.erb %>
+<%# Barra de navegación principal de la aplicación. Usa sintaxis de Bootstrap 5. %>
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #7f8c8d;">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="<%= root_path %>">Control Horario</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <%# Elementos a la derecha: Iniciar/Cerrar Sesión y Registrarse %>
+      <ul class="navbar-nav ms-auto">
+        <% if logged_in? %>
+          <li class="nav-item">
+            <span class="navbar-text me-3">
+              Usuario: <strong><%= current_user.email %></strong>
+            </span>
+          </li>
+          <li class="nav-item">
+            <%= link_to 'Cerrar Sesión', logout_path, data: { turbo_method: :delete }, class: 'btn btn-outline-light' %>
+          </li>
+        <% else %>
+          <li class="nav-item"><%= link_to 'Iniciar Sesión', login_path, class: 'nav-link' %></li>
+          <li class="nav-item"><%= link_to 'Registrarse', signup_path, class: 'btn btn-primary ms-2' %></li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+</nav>

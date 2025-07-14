@@ -1,0 +1,40 @@
+<%#
+  Este parcial muestra el resultado de la simulación de la bolsa de horas.
+  Es renderizado por la acción 'previsualizar' del FichajesController.
+%>
+
+<% if resultado_simulacion && !resultado_simulacion[:error] %>
+  <%
+    balance_semanal = resultado_simulacion[:balance_neto_principal_semana] || 0
+    saldos_previstos = resultado_simulacion[:saldos_finales_previstos] || {}
+    horas_teoricas = resultado_simulacion[:total_horas_teoricas_semana] || 0
+    horas_computadas = resultado_simulacion[:total_horas_computadas_semana] || 0
+  %>
+
+  <div class="previsualizacion-bolsa-ajax">
+    <%# Resumen de horas de la semana %>
+    <div class="mb-2 small">
+      <div>Teóricas: <strong><%= number_with_precision(horas_teoricas, precision: 2) %> h</strong></div>
+      <div>Computadas: <strong><%= number_with_precision(horas_computadas, precision: 2) %> h</strong></div>
+      <hr class="my-1">
+      <div>
+        <strong>Balance:</strong>
+        <span class="font-bold <%= balance_semanal.negative? ? 'text-danger' : 'text-success' %>">
+          <%= number_with_precision(balance_semanal, precision: 2) %> h
+        </span>
+      </div>
+    </div>
+
+    <%# Previsión de cómo quedarán las bolsas de horas %>
+    <div class="mt-2">
+      <small class="text-muted">Saldos finales previstos:</small>
+      <ul class="list-unstyled mb-0 small">
+        <li>B. Normal: <strong><%= number_with_precision(saldos_previstos['horas_normales'], precision: 2) %> h</strong></li>
+        <li>B. Fest. Trab.: <strong><%= number_with_precision(saldos_previstos['festivo_trabajado'], precision: 2) %> h</strong></li>
+        <li>B. Fest. Libr.: <strong><%= number_with_precision(saldos_previstos['festivo_libranza'], precision: 2) %> h</strong></li>
+      </ul>
+    </div>
+  </div>
+<% elsif resultado_simulacion && resultado_simulacion[:error] %>
+  <div class="alert alert-warning p-1 small m-0"><%= resultado_simulacion[:error] %></div>
+<% end %>

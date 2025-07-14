@@ -1,0 +1,37 @@
+<%= form_with(model: [:admin, @tipo_contrato], local: true) do |form| %>
+  <% if @tipo_contrato.errors.any? %>
+    <div id="error_explanation" class="alert alert-danger">
+      <h2><%= t('activerecord.errors.template.header', model: @tipo_contrato.class.model_name.human, count: @tipo_contrato.errors.count) %></h2>
+      <ul>
+        <% @tipo_contrato.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= form.label :nombre, class: 'form-label' %>
+    <%= form.text_field :nombre, class: 'form-control', required: true %>
+  </div>
+
+  <div class="mb-3 form-check">
+    <%= form.check_box :afecta_bolsa_ordinaria, class: 'form-check-input' %>
+    <%= form.label :afecta_bolsa_ordinaria, 'Afecta a la bolsa de horas ordinaria (balance semanal)', class: 'form-check-label' %>
+  </div>
+
+  <div class="mb-3 form-check">
+    <%= form.check_box :acumula_festivo_trabajado_en_bolsa, class: 'form-check-input' %>
+    <%= form.label :acumula_festivo_trabajado_en_bolsa, 'Acumula festivos trabajados en bolsa', class: 'form-check-label' %>
+  </div>
+
+  <div class="mb-3 form-check">
+    <%= form.check_box :acumula_festivo_en_libranza, class: 'form-check-input' %>
+    <%= form.label :acumula_festivo_en_libranza, 'Acumula festivos en día de libranza', class: 'form-check-label' %>
+  </div>
+
+  <div class="text-end mt-4">
+    <%= form.submit class: 'btn-primary' %>
+    <%= link_to 'Cancelar', admin_tipo_contratos_path, class: 'btn-primary ms-2' %>
+  </div>
+<% end %>

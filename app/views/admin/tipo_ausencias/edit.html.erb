@@ -1,0 +1,12 @@
+<%#
+  Página para editar un Tipo de Ausencia existente.
+%>
+
+<% content_for :title, "Editar: #{@tipo_ausencia.nombre}" %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1>Editar: <span class="fw-normal"><%= @tipo_ausencia.nombre %></span></h1>
+  <%= link_to 'Volver al listado', admin_tipo_ausencias_path, class: 'btn btn-secondary' %>
+</div>
+<%= render 'form', tipo_ausencia: @tipo_ausencia %>
+

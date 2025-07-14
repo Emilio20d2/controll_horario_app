@@ -1,0 +1,50 @@
+<%# Parcial para renderizar una fila completa de un trabajador en la tabla de registro semanal %>
+<%#
+  Recibe:
+  - trabajador: La instancia del modelo Trabajador.
+  Variables de instancia utilizadas:
+  - @fechas_semana: Array con las fechas de la semana.
+  - @entradas_diarias_map: Mapa con las entradas ya guardadas.
+  - @tipos_ausencia: Colección de todos los tipos de ausencia.
+  - @festivos_semana: Array con las fechas que son festivo.
+%>
+<%= form_with(url: procesar_fila_trabajador_path, method: :post,
+              data: {
+                controller: "previsualizacion",
+                previsualizacion_url_value: previsualizar_fila_path,
+                previsualizacion_trabajador_id_value: trabajador.id,
+                previsualizacion_anio_value: @anio_seleccionado,
+                previsualizacion_semana_value: @semana_seleccionada,
+                action: "change->previsualizacion#recalcular"
+              }) do |form| %>
+  <tr class="align-middle">
+    <td class="fw-bold">
+      <%= trabajador.nombre %>
+      <%= form.hidden_field :trabajador_id, value: trabajador.id %>
+      <%= form.hidden_field :anio, value: @anio_seleccionado %>
+      <%= form.hidden_field :semana, value: @semana_seleccionada %>
+    </td>
+
+    <% @fechas_semana.each do |fecha| %>
+      <td class="p-1 align-top">
+        <%# El parcial 'celda_dia' ahora debe aceptar el objeto 'form' %>
+        <%= render 'celda_dia', trabajador: trabajador, fecha: fecha, form: form %>
+      </td>
+    <% end %>
+
+    <td data-previsualizacion-target="output">
+      <%# Aquí se renderizará la previsualización de las bolsas de horas. %>
+      <%= render 'previsualizacion_bolsas', resultado_simulacion: nil %>
+    </td>
+
+    <td class="text-center">
+      <% procesado = @semanas_procesadas.include?(trabajador.id) %>
+      <% texto_boton = procesado ? "Procesado ✓" : "Confirmar y Procesar" %>
+      <% clase_boton = procesado ? "btn-success" : "btn-primary" %>
+
+      <%# El botón se deshabilita visualmente si ya está procesado, pero se puede seguir usando. %>
+      <%# La lógica para revertir el estado al editar se implementaría con JS. %>
+      <%= form.button texto_boton, type: :submit, class: clase_boton %>
+    </td>
+  </tr>
+<% end %>

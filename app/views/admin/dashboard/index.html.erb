@@ -1,0 +1,29 @@
+<%#
+  Dashboard principal del panel de administración.
+  Ofrece acceso a las diferentes secciones de configuración.
+%>
+
+<div class="page-header">
+  <h1>Panel de Administración</h1>
+  <%= link_to 'Volver a la App', root_path, class: 'btn btn-secondary' %>
+</div>
+
+<p>Desde aquí puedes gestionar todos los aspectos de la aplicación.</p>
+
+<div class="row mt-4">
+  <div class="col-md-6 col-lg-4 mb-3">
+    <%= link_to 'Gestionar Empleados', admin_trabajadores_path, class: 'btn btn-primary w-100 p-3' %>
+  </div>
+  <div class="col-md-6 col-lg-4 mb-3">
+    <%= link_to 'Gestionar Festivos', admin_festivos_path, class: 'btn btn-primary w-100 p-3' %>
+  </div>
+  <div class="col-md-6 col-lg-4 mb-3">
+    <%= link_to 'Tipos de Contrato', admin_tipo_contratos_path, class: 'btn btn-primary w-100 p-3' %>
+  </div>
+  <div class="col-md-6 col-lg-4 mb-3">
+    <%= link_to 'Tipos de Ausencia', admin_tipo_ausencias_path, class: 'btn btn-primary w-100 p-3' %>
+  </div>
+  <div class="col-md-6 col-lg-4 mb-3">
+    <%= link_to 'Configurar Jornada Anual', admin_configuracion_jornadas_path, class: 'btn btn-primary w-100 p-3' %>
+  </div>
+</div>

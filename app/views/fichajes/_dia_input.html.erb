@@ -1,0 +1,38 @@
+<%#
+  Parcial para renderizar los campos de entrada de un solo día para un trabajador.
+  Recibe: fecha, trabajador, entrada_dia, tipos_ausencia, festivo (booleano).
+  El placeholder de "Horas Trabajadas" muestra las horas teóricas para ese día.
+%>
+<div class="dia-input-group-vertical">
+  <div class="mb-2">
+    <label for="dias_<%= fecha %>_horas_trabajadas" class="form-label-sm">Horas Trabajadas</label>
+    <%= number_field_tag "dias[#{fecha}][horas_trabajadas]", (entrada_dia.new_record? ? nil : entrada_dia.horas_trabajadas), id: "dias_#{fecha}_horas_trabajadas", class: 'form-control form-control-sm', step: 'any', min: 0, placeholder: trabajador.horas_teoricas_para(fecha) %>
+  </div>
+
+  <div class="mb-2">
+    <label for="dias_<%= fecha %>_tipo_ausencia_id" class="form-label-sm">Ausencia</label>
+    <%= select_tag "dias[#{fecha}][tipo_ausencia_id]", options_from_collection_for_select(tipos_ausencia, :id, :nombre, entrada_dia.tipo_ausencia_id), id: "dias_#{fecha}_tipo_ausencia_id", include_blank: true, class: 'form-select form-select-sm' %>
+  </div>
+
+  <div class="mb-2">
+    <label for="dias_<%= fecha %>_horas_ausencia" class="form-label-sm">Horas Ausencia</label>
+    <%= number_field_tag "dias[#{fecha}][horas_ausencia]", entrada_dia.horas_ausencia, id: "dias_#{fecha}_horas_ausencia", class: 'form-control form-control-sm', step: 'any', min: 0 %>
+  </div>
+
+  <div class="mb-2">
+    <label for="dias_<%= fecha %>_horas_comp_pagadas" class="form-label-sm">H. Comp. Pagadas</label>
+    <%= number_field_tag "dias[#{fecha}][horas_comp_pagadas]", entrada_dia.horas_comp_pagadas, id: "dias_#{fecha}_horas_comp_pagadas", class: 'form-control form-control-sm', step: 'any', min: 0 %>
+  </div>
+
+  <div class="mb-2">
+    <label for="dias_<%= fecha %>_comentario" class="form-label-sm">Motivo</label>
+    <%= text_area_tag "dias[#{fecha}][comentario]", entrada_dia.comentario, id: "dias_#{fecha}_comentario", class: 'form-control form-control-sm', rows: 2 %>
+  </div>
+
+  <% if festivo %>
+    <div class="form-check form-switch mt-2">
+      <%= check_box_tag "dias[#{fecha}][pago_doble]", '1', entrada_dia.pago_doble, class: 'form-check-input', id: "pago_doble_#{trabajador.id}_#{fecha}" %>
+      <%= label_tag "pago_doble_#{trabajador.id}_#{fecha}", 'Pago Doble', class: 'form-check-label' %>
+    </div>
+  <% end %>
+</div>

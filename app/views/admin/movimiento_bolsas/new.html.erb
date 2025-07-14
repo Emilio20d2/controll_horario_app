@@ -1,0 +1,48 @@
+<%# app/views/admin/movimiento_bolsas/new.html.erb %>
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header">
+      <h3>Añadir Ajuste Manual a la Bolsa de Horas de <%= @trabajador.nombre %></h3>
+    </div>
+    <div class="card-body">
+      <%= form_with(model: [:admin, @trabajador, @movimiento], local: true) do |form| %>
+        <% if @movimiento.errors.any? %>
+          <div id="error_explanation" class="alert alert-danger">
+            <h4><%= pluralize(@movimiento.errors.count, "error") %> impidieron guardar el ajuste:</h4>
+            <ul>
+              <% @movimiento.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div class="mb-3">
+          <%= form.label :cantidad_horas, "Cantidad de Horas", class: "form-label" %>
+          <%= form.number_field :cantidad_horas, step: :any, class: "form-control", required: true, placeholder: "Ej: 8.0 o -2.5" %>
+          <div class="form-text">Usa un número positivo para añadir horas (crédito) y un número negativo para quitar horas (débito).</div>
+        </div>
+
+        <div class="mb-3">
+          <%= form.label :categoria_bolsa_afectada, "Bolsa de Horas Afectada", class: "form-label" %>
+          <%= form.select :categoria_bolsa_afectada, @categorias_bolsa.map { |c| [c.humanize, c] }, { prompt: "Selecciona una categoría" }, class: "form-select", required: true %>
+        </div>
+
+        <div class="mb-3">
+          <%= form.label :fecha_efectiva, "Fecha del Ajuste", class: "form-label" %>
+          <%= form.date_field :fecha_efectiva, class: "form-control", required: true %>
+        </div>
+
+        <div class="mb-3">
+          <%= form.label :concepto, "Concepto / Motivo", class: "form-label" %>
+          <%= form.text_area :concepto, class: "form-control", required: true, rows: 3, placeholder: "Ej: Compensación por horas extra del día X" %>
+        </div>
+
+        <div class="d-flex justify-content-between">
+          <%= form.submit "Guardar Ajuste Manual", class: "btn btn-primary" %>
+          <%= link_to "Cancelar", admin_trabajador_path(@trabajador), class: "btn btn-secondary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

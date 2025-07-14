@@ -1,0 +1,36 @@
+<div class="container">
+  <h1>Historial de Movimientos para <%= @trabajador.nombre %></h1>
+
+  <% if @movimientos.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha Efectiva</th>
+          <th class="text-left">Concepto</th>
+          <th>Categoría Afectada</th>
+          <th>Tipo</th>
+          <th class="text-right">Horas</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @movimientos.each do |mov| %>
+          <tr>
+            <td><%= l(mov.fecha_efectiva, format: :short) %></td>
+            <td class="text-left"><%= mov.concepto %></td>
+            <td><%= mov.categoria_bolsa_afectada.titleize.tr('_', ' ') %></td>
+            <td><%= mov.tipo_movimiento.titleize.tr('_', ' ') %></td>
+            <td class="text-right font-bold <%= mov.cantidad_horas >= 0 ? 'text-green' : 'text-red' %>">
+              <%= format('%.2f h', mov.cantidad_horas) %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="mt-20">No hay movimientos registrados para este trabajador.</p>
+  <% end %>
+
+  <div class="mt-20">
+    <%= link_to "Volver a la vista semanal", confirmacion_semanal_path, class: "btn-primary" %>
+  </div>
+</div>

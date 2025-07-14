@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ControlHorarioApp</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="<%= controller_name %>-<%= action_name %>">
+    <%= render 'layouts/navigation' %>
+
+    <%# Determina si se debe usar un contenedor de ancho completo (fluid) o estándar %>
+    <% container_class = (controller_name == 'fichajes' && action_name == 'semanal') ? 'container-fluid' : 'container' %>
+
+    <main class="<%= container_class %> content-box mt-4">
+      <%# Aquí se mostrarán los mensajes flash (notices, alerts) %>
+      <%= render 'layouts/flash_messages' %>
+
+      <%= yield %>
+    </main>
+  </body>
+</html>

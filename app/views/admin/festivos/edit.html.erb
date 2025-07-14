@@ -1,0 +1,7 @@
+<% content_for :title, "Editar Festivo" %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1>Editar Festivo: <span class="fw-normal"><%= @festivo.descripcion %></span></h1>
+</div>
+
+<%= render 'form', festivo: @festivo %>

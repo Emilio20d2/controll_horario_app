@@ -1,0 +1,17 @@
+<%# app/views/informes/index.html.erb %>
+
+<h1>Menú de Informes</h1>
+<p>Selecciona el informe que deseas generar:</p>
+
+<ul>
+  <li>
+    <%= link_to "Listado General de Bolsas de Horas (PDF)", informe_general_bolsas_path(format: :pdf), target: "_blank" %>
+    <p><small>Muestra un resumen con los saldos actuales de la bolsa de horas para todos los trabajadores.</small></p>
+  </li>
+  
+  <%# Aquí añadiremos los enlaces a los otros informes en el futuro %>
+  
+</ul>
+
+<hr>
+<%= link_to "Volver al Panel Principal", "/admin" %> <%# Cambiar si tienes una ruta específica para el admin %>

@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  trabajador: one
+  fecha_efectiva: 2025-07-08
+  cantidad_horas: 9.99
+  tipo_movimiento: MyString
+  categoria_bolsa_afectada: MyString
+  concepto: MyString
+
+two:
+  trabajador: two
+  fecha_efectiva: 2025-07-08
+  cantidad_horas: 9.99
+  tipo_movimiento: MyString
+  categoria_bolsa_afectada: MyString
+  concepto: MyString

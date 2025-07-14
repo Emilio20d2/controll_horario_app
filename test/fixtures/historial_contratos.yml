@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  trabajador: one
+  horas_semanales_contratadas: 9.99
+  fecha_inicio_vigencia: 2025-07-08
+  fecha_fin_vigencia: 2025-07-08
+
+two:
+  trabajador: two
+  horas_semanales_contratadas: 9.99
+  fecha_inicio_vigencia: 2025-07-08
+  fecha_fin_vigencia: 2025-07-08

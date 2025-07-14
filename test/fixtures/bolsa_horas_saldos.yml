@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  trabajador: one
+  horas_trabajadas_acumuladas: 9.99
+  horas_festivo_trabajado: 9.99
+  horas_festivo_libranza: 9.99
+
+two:
+  trabajador: two
+  horas_trabajadas_acumuladas: 9.99
+  horas_festivo_trabajado: 9.99
+  horas_festivo_libranza: 9.99

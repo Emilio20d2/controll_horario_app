@@ -1,0 +1,67 @@
+<%# Parcial para la celda de un día específico en el formulario de registro semanal %>
+<%#
+  Recibe:
+  - trabajador: La instancia del modelo Trabajador.
+  - form: El objeto form builder del `form_with` padre.
+  - fecha: La fecha (Date object) para esta celda.
+  Variables de instancia utilizadas:
+  - @entradas_diarias_map: Mapa con las entradas ya guardadas.
+  - @tipos_ausencia: Colección de todos los tipos de ausencia.
+  - @festivos_semana: Array con las fechas que son festivo.
+%>
+<%
+  # Obtenemos la entrada diaria para este trabajador y fecha, si existe.
+  entrada_diaria = @entradas_diarias_map.dig(trabajador.id, fecha) || EntradaDiaria.new
+  # Calculamos las horas teóricas para este día.
+  horas_teo_dia = trabajador.horas_teoricas_para(fecha)
+  # Verificamos si el día es festivo.
+  es_festivo = @festivos_semana.include?(fecha)
+  # Definimos qué ausencias son fraccionables (requieren input de horas) según su modalidad.
+  ausencias_fraccionables = ['devolucion_festivo', 'libranza_festivo']
+  # Verificamos si la ausencia seleccionada es fraccionable para el estado inicial
+  ausencia_seleccionada = @tipos_ausencia.find { |ta| ta.id == entrada_diaria.tipo_ausencia_id }
+  mostrar_horas_ausencia = ausencia_seleccionada && ausencias_fraccionables.include?(ausencia_seleccionada.modalidad)
+%>
+
+<div class="p-2" data-controller="day-cell">
+  <%# 1. Horas Teóricas %>
+  <div class="mb-2">
+    <%= form.label "dias[#{fecha}][horas_trabajadas]", "H. Trabajadas", class: "form-label small mb-0" %>
+    <%= form.number_field "dias[#{fecha}][horas_trabajadas]", step: 0.25, class: "form-control form-control-sm", value: (entrada_diaria.horas_trabajadas || '%.2f' % horas_teo_dia) %>
+  </div>
+
+  <%# 2. Selector de Ausencia %>
+  <div class="mb-2">
+    <%= form.label "dias[#{fecha}][tipo_ausencia_id]", "Ausencia", class: "form-label small mb-0" %>
+    <%= form.select "dias[#{fecha}][tipo_ausencia_id]",
+                    options_from_collection_for_select(@tipos_ausencia, :id, :nombre, entrada_diaria.tipo_ausencia_id),
+                    { include_blank: '--- Sin Ausencia ---' },
+                    { class: 'form-select form-select-sm',
+                      data: { action: 'change->day-cell#toggleAusenciaHoras', day_cell_target: 'tipoAusenciaSelect' } } %>
+  </div>
+
+  <%# 3. Horas de Ausencia (condicional) %>
+  <div class="mb-2 <%= 'd-none' unless mostrar_horas_ausencia %>" data-day-cell-target="horasAusenciaWrapper">
+    <%= form.label "dias[#{fecha}][horas_ausencia]", "H. Ausencia", class: "form-label small mb-0" %>
+    <%= form.number_field "dias[#{fecha}][horas_ausencia]", step: 0.25, class: "form-control form-control-sm", value: entrada_diaria.horas_ausencia, placeholder: "0.00" %>
+  </div>
+
+  <%# 4. Horas Complementarias %>
+  <div class="mb-2">
+    <%= form.label "dias[#{fecha}][horas_comp_pagadas]", "H. Comp. Pagadas", class: "form-label small mb-0" %>
+    <%= form.number_field "dias[#{fecha}][horas_comp_pagadas]", step: 0.25, class: "form-control form-control-sm", value: (entrada_diaria.horas_comp_pagadas || '0.00'), placeholder: "0.00" %>
+  </div>
+
+  <%# 5. Checkbox "Pago Doble" (condicional) %>
+  <div class="form-check mb-2">
+    <%= form.check_box "dias[#{fecha}][pago_doble]", { class: 'form-check-input', disabled: !es_festivo }, '1', '0' %>
+    <%= form.label "dias[#{fecha}][pago_doble]", "Pago Doble", class: "form-check-label small #{'text-muted' unless es_festivo}" %>
+  </div>
+
+  <%# 6. Comentario Justificativo %>
+  <div>
+    <%= form.label "dias[#{fecha}][comentario]", "Comentario", class: "form-label small mb-0" %>
+    <%= form.text_field "dias[#{fecha}][comentario]", class: "form-control form-control-sm", value: entrada_diaria.comentario %>
+  </div>
+</div>
+# db/migrate/YYYYMMDDHHMMSS_add_fields_to_entrada_diarias_for_weekly_form.rb

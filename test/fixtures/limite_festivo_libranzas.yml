@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  trabajador: one
+  anio: 1
+  horas_acumuladas: 9.99
+
+two:
+  trabajador: two
+  anio: 1
+  horas_acumuladas: 9.99

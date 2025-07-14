@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  trabajador: one
+  plantilla_horario: one
+  fecha_inicio: 2025-07-08
+  fecha_fin: 2025-07-08
+
+two:
+  trabajador: two
+  plantilla_horario: two
+  fecha_inicio: 2025-07-08
+  fecha_fin: 2025-07-08

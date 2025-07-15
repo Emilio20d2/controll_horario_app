@@ -8,13 +8,13 @@ class Trabajador < ApplicationRecord
   has_many :movimiento_bolsas, dependent: :destroy
   has_many :limite_festivo_libranzas, dependent: :destroy
   has_one :bolsa_horas_saldo, dependent: :destroy
-  
-  # --- CORRECCIÓN: Asociación que faltaba ---
   has_many :historial_jornada_anuals, dependent: :destroy
 
   validates :nombre, presence: true
 
   def horas_teoricas_para(fecha)
+    # Lógica para calcular las horas teóricas de un día...
+    # (Este método ya debería estar correcto según nuestros pasos anteriores)
     asignacion = asignacion_turnos.where("fecha_inicio <= ? AND (fecha_fin IS NULL OR fecha_fin >= ?)", fecha, fecha).order(fecha_inicio: :desc).first
     return 0.0 unless asignacion&.plantilla_horario&.horario
 
@@ -26,7 +26,6 @@ class Trabajador < ApplicationRecord
     BigDecimal(plantilla.horario.dig("semana#{semana_del_ciclo}", dia_key)&.to_s || "0.0").to_f
   end
 
-  # --- NUEVO MÉTODO: Para obtener la jornada actual ---
   def jornada_semanal_actual
     historial_contratos.order(fecha_inicio_vigencia: :desc).first&.horas_semanales_contratadas || 0.0
   end

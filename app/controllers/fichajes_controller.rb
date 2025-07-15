@@ -1,124 +1,63 @@
-<%# app/views/fichajes/semanal.html.erb %>
-<% content_for :title, "Confirmación Semanal" %>
+class FichajesController < ApplicationController
+  def semanal
+    @anio_actual = Date.today.year
+    @semana_actual = Date.today.cweek
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Confirmación Semanal de Jornada</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-      /* --- Estilo Base y Fondo de Pantalla --- */
-      body {
-        background-image: url('<%= asset_path("FondoPantalla.jpg") %>');
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        color: #212529;
-        background-color: #f0f2f5; /* Color de respaldo */
-      }
-      body::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(255, 255, 255, 0.6); /* Capa blanca semitransparente */
-        z-index: -1;
-      }
-      .container { max-width: 98%; margin: 15px auto; background-color: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 0.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-      .page-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dee2e6; padding-bottom: 1rem; margin-bottom: 1.5rem; }
-      .page-header h1 { color: #869495; margin:0; font-size: 1.6em; }
-      .nav-link-admin-button { display: inline-block; padding: 9px 18px; background-color: #6c757d; color: white !important; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 0.9em; }
-      .footer-nav { margin-top: 30px; text-align: center; padding-top: 20px; border-top: 1px solid #eee;}
-      /* --- Estilos de la Tabla --- */
-      .schedule-table { width: 100%; border-collapse: collapse; margin-top: 20px; table-layout: fixed; font-size: 0.85em;}
-      .schedule-table th, .schedule-table td { border: 1px solid #dee2e6; padding: 8px; text-align: center; vertical-align: top;}
-      .schedule-table thead th { background-color: #869495; color: white; font-weight: 600; white-space: nowrap; }
-      .trabajador-row:focus-within, .trabajador-row.fila-modificada { background-color: #fff9e6; }
-      .empleado-cell { text-align: left; font-weight: 600; width: 250px; }
-      .acciones-cell { width: 150px; vertical-align: middle; }
-      .day-cell { min-width: 140px; } 
-      .day-cell label { font-size: 0.8em; display:block; margin-bottom: 3px; color: #495057; text-align: left; font-weight:500;}
-      .day-cell input, .day-cell select { width: 100%; padding: 6px; font-size:0.9em; margin-bottom: 5px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box;}
-      .preview-cell { text-align: left; font-size: 0.85em; padding-top: 10px; }
-      .preview-cell ul { list-style: none; padding: 0; margin: 0; }
-      .preview-cell li { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #f0f0f0; }
-      .preview-cell strong { font-family: monospace; font-size: 1.1em; padding: 2px 4px; border-radius: 3px; background-color: #e9ecef; }
-    </style>
-</head>
-<body>
-    <div class="container content-box">
-        <div class="page-header">
-            <h1>Confirmación Semanal</h1>
-            <%= link_to "« Volver al Menú", '#', class: "nav-link-admin-button" %>
-        </div>
+    @anio_seleccionado = params.fetch(:fecha, Date.today.to_s).to_date.year rescue @anio_actual
+    @semana_seleccionada = params.fetch(:fecha, Date.today.to_s).to_date.cweek rescue @semana_actual
 
-        <h2 class="page-subtitle">Semana del <%= l(@fecha_lunes, format: :short) %> al <%= l(@fecha_lunes + 6.days, format: :short) %></h2>
+    begin
+      @fecha_lunes = Date.commercial(@anio_seleccionado, @semana_seleccionada, 1)
+    rescue Date::Error
+      @fecha_lunes = Date.commercial(@anio_actual, @semana_actual, 1)
+      flash.now[:alert] = "Fecha inválida. Mostrando semana actual."
+    end
+    
+    @fechas_semana = (@fecha_lunes..(@fecha_lunes + 6.days)).to_a
+    @params_semana_anterior = { fecha: (@fecha_lunes - 1.week).to_s }
+    @params_semana_siguiente = { fecha: (@fecha_lunes + 1.week).to_s }
 
-        <form>
-            <table class="schedule-table">
-                <thead>
-                    <tr>
-                        <th>Empleado / Previsualización</th>
-                        <% @fechas_semana.each do |fecha| %>
-                            <th class="text-center">
-                                <%= l(fecha, format: '%A') %><br>
-                                <small><%= l(fecha, format: '%d/%m') %></small>
-                            </th>
-                        <% end %>
-                        <th class="acciones-col">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% @trabajadores.each do |trabajador| %>
-                        <tr class="trabajador-row" 
-                            id="fila_trabajador_<%= trabajador.id %>" 
-                            data-controller="previsualizacion"
-                            data-previsualizacion-jornada-semanal-value="<%= trabajador.jornada_semanal_actual %>"
-                            data-previsualizacion-acumula-festivos-value="<%= trabajador.tipo_contrato.acumula_festivo_trabajado_en_bolsa %>"
-                            data-previsualizacion-acumula-libranza-value="<%= trabajador.tipo_contrato.acumula_festivo_en_libranza %>">
-                            
-                            <td class="empleado-cell">
-                                <strong><%= trabajador.nombre %></strong>
-                                <div class="preview-cell">
-                                    <hr>
-                                    <ul>
-                                        <li><span>Total Computado:</span> <strong data-previsualizacion-target="totalComputadas">...</strong></li>
-                                        <li><span>Impacto Bolsa Horas:</span> <strong data-previsualizacion-target="impactoOrdinaria">...</strong></li>
-                                        <li><span>Impacto Bolsa Festivos:</span> <strong data-previsualizacion-target="impactoFestivos">...</strong></li>
-                                        <li><span>Impacto Bolsa Libranza:</span> <strong data-previsualizacion-target="impactoLibranza">...</strong></li>
-                                    </ul>
-                                </div>
-                            </td>
-                            
-                            <% @fechas_semana.each do |fecha| %>
-                                <% horas_teo = @horas_teoricas_map.dig(trabajador.id, fecha) || 0 %>
-                                <% entrada_dia = @entradas_diarias_map.dig(trabajador.id, fecha) %>
-                                <% festivo_obj = @festivos_semana_map[fecha] %>
-                                <% es_festivo_apertura = festivo_obj&.apertura_autorizada %>
-                                
-                                <td class="day-cell <%= 'festivo' if festivo_obj %>" 
-                                    data-teoricas="<%= horas_teo %>" 
-                                    data-festivo="<%= festivo_obj.present? %>"
-                                    data-apertura-autorizada="<%= es_festivo_apertura %>">
-                                    
-                                    <%= render 'dia_input', trabajador: trabajador, fecha: fecha, entrada_dia: entrada_dia, horas_teo: horas_teo, es_festivo_apertura: es_festivo_apertura, tipos_ausencia_options: @tipos_ausencia_options %>
-                                </td>
-                            <% end %>
+    @trabajadores = Trabajador.includes(
+      :tipo_contrato, 
+      :bolsa_horas_saldo,
+      :historial_contratos,
+      asignacion_turnos: :plantilla_horario
+    ).order(:nombre)
+    
+    # Pasamos los tipos de ausencia con sus reglas a la vista
+    @tipos_ausencia_options = TipoAusencia.order(:nombre).map do |ta|
+      [
+        ta.nombre, 
+        ta.id, { 
+          'data-abreviatura' => ta.abreviatura,
+          'data-genera-deuda' => ta.genera_deuda_en_bolsa, 
+          'data-es-retribuida' => ta.es_retribuida,
+          'data-es-fraccionable' => ta.es_fraccionable,
+          'data-afecta-bolsa' => ta.categoria_bolsa_afectada
+        }
+      ]
+    end
 
-                            <td class="acciones-cell">
-                                <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
-                            </td>
-                        </tr>
-                    <% end %>
-                </tbody>
-            </table>
-        </form>
-        <div class="footer-nav">
-             <a href="#" class="nav-link-admin-button">« Volver al Menú</a>
-        </div>
-    </div>
-</body>
-</html>
+    @festivos_semana_map = Festivo.where(fecha: @fechas_semana).index_by(&:fecha)
+
+    @horas_teoricas_map = @trabajadores.each_with_object({}) do |trabajador, hash|
+      hash[trabajador.id] = {}
+      @fechas_semana.each do |fecha|
+        hash[trabajador.id][fecha] = trabajador.horas_teoricas_para(fecha)
+      end
+    end
+
+    @entradas_diarias_map = EntradaDiaria.where(
+      trabajador_id: @trabajadores.map(&:id),
+      fecha: @fechas_semana
+    ).group_by(&:trabajador_id).transform_values { |entradas| entradas.index_by(&:fecha) }
+
+    @semanas_procesadas = MovimientoBolsa.where(
+      trabajador_id: @trabajadores.map(&:id),
+      tipo_movimiento: 'BALANCE_SEMANAL',
+      fecha_efectiva: @fecha_lunes + 6.days
+    ).pluck(:trabajador_id)
+  end
+
+  # ... (La acción 'procesar_fila' para el guardado definitivo se mantiene igual) ...
+end

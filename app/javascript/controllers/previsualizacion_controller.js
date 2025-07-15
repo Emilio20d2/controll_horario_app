@@ -30,6 +30,7 @@ export default class extends Controller {
       const inputComp = celda.querySelector('input[name*="[horas_complementarias_pagadas]"]')
       const checkPagoDoble = celda.querySelector('input[name*="[pago_doble]"]')
       const selectAusencia = celda.querySelector('select[name*="[tipo_ausencia_id]"]')
+      const inputHorasAusencia = celda.querySelector('input[name*="[horas_ausencia]"]')
       
       let horasTrabajadas = parseFloat(inputHoras.value || inputHoras.placeholder || 0)
       let horasComp = parseFloat(inputComp.value || 0)
@@ -39,13 +40,27 @@ export default class extends Controller {
       let ausenciaGeneraDeuda = false
       let ausenciaEsRetribuida = false
       let ausenciaAfectaBolsa = "ninguna"
+      let esFraccionable = false
 
       if (selectAusencia && selectAusencia.value !== "") {
         const selectedOption = selectAusencia.options[selectAusencia.selectedIndex]
-        horasAusencia = teoricasDia
+        esFraccionable = selectedOption.dataset.esFraccionable === 'true'
+        
+        if (esFraccionable) {
+          inputHorasAusencia.style.display = 'block'
+          horasAusencia = parseFloat(inputHorasAusencia.value || 0)
+        } else {
+          inputHorasAusencia.style.display = 'none'
+          inputHorasAusencia.value = ''
+          horasAusencia = teoricasDia
+        }
+        
         ausenciaGeneraDeuda = selectedOption.dataset.generaDeuda === 'true'
         ausenciaEsRetribuida = selectedOption.dataset.esRetribuida === 'true'
         ausenciaAfectaBolsa = selectedOption.dataset.afectaBolsa
+      } else {
+        inputHorasAusencia.style.display = 'none'
+        inputHorasAusencia.value = ''
       }
 
       totalTeoricoSemanal += teoricasDia

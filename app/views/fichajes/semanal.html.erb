@@ -78,7 +78,7 @@
                       options_for_select(@tipos_ausencia, entrada_dia&.tipo_ausencia_id),
                       include_blank: '---',
                       class: "form-select form-select-sm",
-                      data: { action: "change->previsualizacion#recalcular blur->cell#showAbbreviations focus->cell#showFullNames",
+                      data: { action: "change->cell#toggleAusenciaHoras change->cell#showAbbreviations change->previsualizacion#recalcular blur->cell#showAbbreviations focus->cell#showFullNames",
                               cell_target: 'tipoAusenciaSelect' } %>
                   <div class="mt-1 d-none" data-cell-target="horasAusenciaWrapper">
                     <input type="number" name="dias[<%= fecha %>][horas_ausencia]" value="<%= entrada_dia&.horas_ausencia %>" class="form-control form-control-sm" step="0.25" data-action="change->previsualizacion#recalcular">

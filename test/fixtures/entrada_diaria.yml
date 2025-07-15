@@ -7,7 +7,7 @@ one:
   tipo_ausencia: one
   horas_ausencia: 9.99
   pago_doble_marcado: false
-  horas_complementarias_pagadas: 9.99
+  horas_comp_pagadas: 9.99
 
 two:
   trabajador: two
@@ -16,4 +16,4 @@ two:
   tipo_ausencia: two
   horas_ausencia: 9.99
   pago_doble_marcado: false
-  horas_complementarias_pagadas: 9.99
+  horas_comp_pagadas: 9.99

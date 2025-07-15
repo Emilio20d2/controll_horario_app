@@ -1,38 +1,30 @@
-<%#
-  Parcial para renderizar los campos de entrada de un solo día para un trabajador.
-  Recibe: fecha, trabajador, entrada_dia, tipos_ausencia, festivo (booleano).
-  El placeholder de "Horas Trabajadas" muestra las horas teóricas para ese día.
-%>
-<div class="dia-input-group-vertical">
-  <div class="mb-2">
-    <label for="dias_<%= fecha %>_horas_trabajadas" class="form-label-sm">Horas Trabajadas</label>
-    <%= number_field_tag "dias[#{fecha}][horas_trabajadas]", (entrada_dia.new_record? ? nil : entrada_dia.horas_trabajadas), id: "dias_#{fecha}_horas_trabajadas", class: 'form-control form-control-sm', step: 'any', min: 0, placeholder: trabajador.horas_teoricas_para(fecha) %>
-  </div>
 
-  <div class="mb-2">
-    <label for="dias_<%= fecha %>_tipo_ausencia_id" class="form-label-sm">Ausencia</label>
-    <%= select_tag "dias[#{fecha}][tipo_ausencia_id]", options_from_collection_for_select(tipos_ausencia, :id, :nombre, entrada_dia.tipo_ausencia_id), id: "dias_#{fecha}_tipo_ausencia_id", include_blank: true, class: 'form-select form-select-sm' %>
-  </div>
+<%# app/views/fichajes/_dia_input.html.erb %>
+<%# Variables locales esperadas: fecha, trabajador, entrada_dia, horas_teo, es_festivo_apertura, tipos_ausencia_options %>
 
-  <div class="mb-2">
-    <label for="dias_<%= fecha %>_horas_ausencia" class="form-label-sm">Horas Ausencia</label>
-    <%= number_field_tag "dias[#{fecha}][horas_ausencia]", entrada_dia.horas_ausencia, id: "dias_#{fecha}_horas_ausencia", class: 'form-control form-control-sm', step: 'any', min: 0 %>
-  </div>
-
-  <div class="mb-2">
-    <label for="dias_<%= fecha %>_horas_comp_pagadas" class="form-label-sm">H. Comp. Pagadas</label>
-    <%= number_field_tag "dias[#{fecha}][horas_comp_pagadas]", entrada_dia.horas_comp_pagadas, id: "dias_#{fecha}_horas_comp_pagadas", class: 'form-control form-control-sm', step: 'any', min: 0 %>
-  </div>
-
-  <div class="mb-2">
-    <label for="dias_<%= fecha %>_comentario" class="form-label-sm">Motivo</label>
-    <%= text_area_tag "dias[#{fecha}][comentario]", entrada_dia.comentario, id: "dias_#{fecha}_comentario", class: 'form-control form-control-sm', rows: 2 %>
-  </div>
-
-  <% if festivo %>
-    <div class="form-check form-switch mt-2">
-      <%= check_box_tag "dias[#{fecha}][pago_doble]", '1', entrada_dia.pago_doble, class: 'form-check-input', id: "pago_doble_#{trabajador.id}_#{fecha}" %>
-      <%= label_tag "pago_doble_#{trabajador.id}_#{fecha}", 'Pago Doble', class: 'form-check-label' %>
-    </div>
-  <% end %>
+<div class="mb-2">
+  <label class="form-label">H.Trab:</label>
+  <input type="number" name="dias[<%= fecha %>][horas_trabajadas]" value="<%= entrada_dia&.horas_trabajadas %>" placeholder="<%= '%.2f' % horas_teo %>" class="form-control form-control-sm" step="0.25" min="0" max="24" data-action="change->previsualizacion#recalcular">
 </div>
+<div class="mb-2">
+  <label class="form-label">Ausencia:</label>
+  <%= select_tag "dias[#{fecha}][tipo_ausencia_id]", 
+      options_for_select(tipos_ausencia_options, entrada_dia&.tipo_ausencia_id),
+      include_blank: '---', 
+      class: "form-select form-select-sm", data: { action: "change->previsualizacion#recalcular" } %>
+</div>
+<% if es_festivo_apertura %>
+  <div class="form-check">
+    <input type="checkbox" name="dias[<%= fecha %>][pago_doble]" class="form-check-input" <%= 'checked' if entrada_dia&.pago_doble_marcado %> data-action="change->previsualizacion#recalcular">
+    <label class="form-check-label">P. Doble</label>
+  </div>
+<% end %>
+<div class="mt-2">
+  <label class="form-label">H.Comp.P:</label>
+  <input type="number" name="dias[<%= fecha %>][horas_complementarias_pagadas]" value="<%= entrada_dia&.horas_complementarias_pagadas %>" class="form-control form-control-sm" step="0.25" min="0" max="24" data-action="change->previsualizacion#recalcular">
+</div>
+<div class="mt-2">
+  <label class="form-label">Motivo:</label>
+  <textarea name="dias[<%= fecha %>][motivo]" class="form-control form-control-sm" rows="1"><%= entrada_dia&.motivo %></textarea>
+</div>
+

@@ -34,7 +34,7 @@ export default class extends Controller {
       const esApertura = celda.dataset.aperturaAutorizada === 'true'
       
       const inputHoras = celda.querySelector('input[name*="[horas_trabajadas]"]')
-      const inputComp = celda.querySelector('input[name*="[horas_complementarias_pagadas]"]')
+      const inputComp = celda.querySelector('input[name*="[horas_comp_pagadas]"]')
       const checkPagoDoble = celda.querySelector('input[name*="[pago_doble]"]')
       const selectAusencia = celda.querySelector('select[name*="[tipo_ausencia_id]"]')
       

@@ -72,3 +72,15 @@ form label {
   font-size: 0.85rem;
 }
 
+/* Ancho y estilo de las columnas diarias */
+.schedule-table .day-cell {
+  width: 8rem;
+}
+
+/* Centrado del botón Guardar */
+.acciones-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+

@@ -35,6 +35,7 @@ export default class extends Controller {
       
       const inputHoras = celda.querySelector('input[name*="[horas_trabajadas]"]')
       const inputComp = celda.querySelector('input[name*="[horas_comp_pagadas]"]')
+      const inputAusenciaHoras = celda.querySelector('input[name*="[horas_ausencia]"]')
       const checkPagoDoble = celda.querySelector('input[name*="[pago_doble]"]')
       const selectAusencia = celda.querySelector('select[name*="[tipo_ausencia_id]"]')
       
@@ -46,8 +47,8 @@ export default class extends Controller {
       let ausenciaGeneraDeuda = false
       if (selectAusencia && selectAusencia.value !== "") {
         const selectedOption = selectAusencia.options[selectAusencia.selectedIndex]
-        // Asumimos que la ausencia cubre las horas teóricas del día
-        horasAusencia = teoricasDia
+        const esFraccionable = selectedOption.dataset.fraccionable === 'true'
+        horasAusencia = esFraccionable ? parseFloat(inputAusenciaHoras.value || 0) : teoricasDia
         ausenciaGeneraDeuda = selectedOption.dataset.generaDeuda === 'true'
       }
 

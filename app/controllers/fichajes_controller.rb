@@ -3,8 +3,14 @@ class FichajesController < ApplicationController
     @anio_actual = Date.today.year
     @semana_actual = Date.today.cweek
 
-    @anio_seleccionado = params.fetch(:anio, @anio_actual).to_i
-    @semana_seleccionada = params.fetch(:semana, @semana_actual).to_i
+    if params[:fecha].present?
+      fecha = Date.parse(params[:fecha]) rescue Date.today
+      @anio_seleccionado = fecha.cwyear
+      @semana_seleccionada = fecha.cweek
+    else
+      @anio_seleccionado = params.fetch(:anio, @anio_actual).to_i
+      @semana_seleccionada = params.fetch(:semana, @semana_actual).to_i
+    end
 
     begin
       @fecha_lunes = Date.commercial(@anio_seleccionado, @semana_seleccionada, 1)
@@ -23,9 +29,12 @@ class FichajesController < ApplicationController
     ).order(:nombre)
     
     @tipos_ausencia = TipoAusencia.all.map do |ta|
-      [ta.nombre, ta.id, { 
-        'data-genera-deuda' => ta.genera_deuda_en_bolsa, 
-        'data-es-retribuida' => ta.es_retribuida 
+      [ta.nombre, ta.id, {
+        'data-genera-deuda' => ta.genera_deuda_en_bolsa,
+        'data-es-retribuida' => ta.es_retribuida,
+        'data-fraccionable' => ta.es_fraccionable,
+        'data-abreviatura' => ta.abreviatura,
+        'data-nombre' => ta.nombre
       }]
     end
 

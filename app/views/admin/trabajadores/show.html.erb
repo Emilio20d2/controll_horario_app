@@ -64,17 +64,17 @@
         <li class="list-group-item d-flex justify-content-between align-items-center">
           Bolsa de Horas
           <%# --- CORRECCIÓN AQUÍ --- %>
-          <span class="badge bg-primary rounded-pill"><%= number_with_precision(@trabajador.bolsa_horas_saldo.saldo_horas, precision: 2) %> h</span>
+          <span class="badge bg-primary rounded-pill"><%= number_with_precision(@trabajador.bolsa_horas_saldo.horas_trabajadas_acumuladas, precision: 2) %> h</span>
         </li>
         <li class="list-group-item d-flex justify-content-between align-items-center">
           Bolsa de Festivos
           <%# --- CORRECCIÓN AQUÍ --- %>
-          <span class="badge bg-primary rounded-pill"><%= number_with_precision(@trabajador.bolsa_horas_saldo.saldo_festivos, precision: 2) %> h</span>
+          <span class="badge bg-primary rounded-pill"><%= number_with_precision(@trabajador.bolsa_horas_saldo.horas_festivo_trabajado, precision: 2) %> h</span>
         </li>
         <li class="list-group-item d-flex justify-content-between align-items-center">
           Bolsa de Libranza
           <%# --- CORRECCIÓN AQUÍ --- %>
-          <span class="badge bg-primary rounded-pill"><%= number_with_precision(@trabajador.bolsa_horas_saldo.saldo_libranza, precision: 2) %> h</span>
+          <span class="badge bg-primary rounded-pill"><%= number_with_precision(@trabajador.bolsa_horas_saldo.horas_festivo_libranza, precision: 2) %> h</span>
         </li>
       </ul>
     <% else %>

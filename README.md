@@ -22,3 +22,5 @@ Things you may want to cover:
 * Deployment instructions
 
 * ...
+
+For details about the weekly preview calculations, see [docs/previsualizacion.md](docs/previsualizacion.md).

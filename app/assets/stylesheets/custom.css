@@ -77,10 +77,36 @@ form label {
   width: 8rem;
 }
 
+/* --- Estilos para la tabla de fichajes (Registro Semanal) --- */
+
+/* Celda con el nombre del trabajador y su jornada */
+.schedule-table .trabajador-cell {
+  width: 12rem; /* Ancho fijo para la columna del nombre */
+  font-weight: bold;
+  vertical-align: middle !important; /* Asegura alineación vertical */
+}
+
+/* Información adicional como la jornada semanal */
+.jornada-semanal-info {
+  display: block; /* Para que aparezca en una nueva línea */
+  font-size: 0.8rem;
+  font-weight: normal;
+  color: #6c757d; /* Un color más suave para la información secundaria */
+  margin-top: 0.25rem;
+}
+
+/* Unificación de estilos para los inputs dentro de la tabla */
+.schedule-table input[type="text"],
+.schedule-table input[type="number"],
+.schedule-table select {
+  max-width: 80px; /* Ancho máximo para que no desborden la celda */
+  font-size: 0.9rem;
+  padding: 0.25rem 0.5rem;
+}
+
 /* Centrado del botón Guardar */
 .acciones-cell {
   display: flex;
   justify-content: center;
   align-items: center;
 }
-

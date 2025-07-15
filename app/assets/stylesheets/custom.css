@@ -67,3 +67,8 @@ thead th {
   background-color: #fff3cd;
 }
 
+/* Tamaño reducido para las etiquetas de los formularios */
+form label {
+  font-size: 0.85rem;
+}
+

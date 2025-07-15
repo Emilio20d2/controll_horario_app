@@ -14,6 +14,11 @@
       <dd class="col-sm-9">
         <%= @trabajador.tipo_contrato&.nombre || 'N/A' %>
       </dd>
+      <dt class="col-sm-3">Jornada Semanal Actual</dt>
+      <dd class="col-sm-9">
+        <%= number_to_human(@trabajador.jornada_semanal_actual,
+          precision: 2, strip_insignificant_zeros: true) %> h
+      </dd>
     </dl>
     <hr>
     <div class="d-flex justify-content-between">

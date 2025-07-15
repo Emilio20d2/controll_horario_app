@@ -14,6 +14,13 @@ export default class extends Controller {
   }
 
   connect() {
+    // Si el campo de horas está vacío, inicializarlo con el valor teórico
+    this.element.querySelectorAll('input[name*="[horas_trabajadas]"]').forEach(input => {
+      if (!input.value && input.placeholder) {
+        input.value = input.placeholder
+      }
+    })
+
     // Realizar el primer cálculo al cargar la página
     this.recalcular()
   }

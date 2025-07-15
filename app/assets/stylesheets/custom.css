@@ -62,3 +62,8 @@ thead th {
   color: white;
 }
 
+/* Resaltado de filas editadas */
+.fila-modificada {
+  background-color: #fff3cd;
+}
+

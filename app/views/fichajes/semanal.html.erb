@@ -8,13 +8,17 @@
 <div class="container content-box">
   <div class="page-header">
     <h1>Confirmación Semanal</h1>
-    <%= link_to "« Volver al Panel Principal", '#', class: "nav-link-admin-button" %>
+    <%= link_to "« Volver al Menú", root_path, class: "nav-link-admin-button" %>
   </div>
 
-  <%# ... (Formulario para seleccionar la semana) ... %>
-
-  <h2 class="page-subtitle">Semana <%= @semana_seleccionada %> del Año <%= @anio_seleccionado %></h2>
-  <p class="period-info">(<%= l(@fecha_lunes, format: :short) %> - <%= l(@fecha_lunes + 6.days, format: :short) %>)</p>
+  <div class="week-selector d-flex justify-content-between align-items-center mb-3">
+    <%= link_to "◄ Semana Anterior", fichajes_semanal_path(anio: @anio_seleccionado, semana: @semana_seleccionada - 1), class: "btn btn-secondary btn-sm" %>
+    <h2 class="h5 m-0">Semana del <%= l(@fecha_lunes) %> al <%= l(@fecha_lunes + 6.days) %></h2>
+    <%= link_to "Semana Siguiente ►", fichajes_semanal_path(anio: @anio_seleccionado, semana: @semana_seleccionada + 1), class: "btn btn-secondary btn-sm" %>
+    <%= form_with url: fichajes_semanal_path, method: :get, class: "ms-3" do |f| %>
+      <%= f.date_field :fecha, value: @fecha_lunes, class: "form-control form-control-sm", data: { action: "change->this.form.submit" } %>
+    <% end %>
+  </div>
 
   <form> <%# El form es solo un contenedor, el guardado se hará por fila %>
     <table class="schedule-table">
@@ -68,20 +72,31 @@
                   <label>H.Trab:</label>
                   <input type="number" name="dias[<%= fecha %>][horas_trabajadas]" value="<%= entrada_dia&.horas_trabajadas %>" placeholder="<%= '%.2f' % horas_teo %>" class="form-control form-control-sm" step="0.25" min="0" max="24" data-action="change->previsualizacion#recalcular">
                 </div>
-                <div class="mb-2">
+                <div class="mb-2" data-controller="cell">
                   <label>Ausencia:</label>
-                  <%= select_tag "dias[#{fecha}][tipo_ausencia_id]", 
+                  <%= select_tag "dias[#{fecha}][tipo_ausencia_id]",
                       options_for_select(@tipos_ausencia, entrada_dia&.tipo_ausencia_id),
-                      include_blank: '---', 
-                      class: "form-select form-select-sm", data: { action: "change->previsualizacion#recalcular" } %>
+                      include_blank: '---',
+                      class: "form-select form-select-sm",
+                      data: { action: "change->previsualizacion#recalcular blur->cell#showAbbreviations focus->cell#showFullNames",
+                              cell_target: 'tipoAusenciaSelect' } %>
+                  <div class="mt-1 d-none" data-cell-target="horasAusenciaWrapper">
+                    <input type="number" name="dias[<%= fecha %>][horas_ausencia]" value="<%= entrada_dia&.horas_ausencia %>" class="form-control form-control-sm" step="0.25" data-action="change->previsualizacion#recalcular">
+                  </div>
                 </div>
                 <% if es_apertura %>
-                  <div class="form-check">
+                  <div class="form-check mb-2">
                     <input type="checkbox" name="dias[<%= fecha %>][pago_doble]" class="form-check-input" <%= 'checked' if entrada_dia&.pago_doble_marcado %> data-action="change->previsualizacion#recalcular">
                     <label class="form-check-label">P. Doble</label>
                   </div>
                 <% end %>
-                <%# ... otros inputs como H.Comp.P y Motivo ... %>
+                <div class="mb-2">
+                  <label>H.Comp.P:</label>
+                  <input type="number" name="dias[<%= fecha %>][horas_comp_pagadas]" value="<%= entrada_dia&.horas_comp_pagadas %>" class="form-control form-control-sm" step="0.25" data-action="change->previsualizacion#recalcular">
+                </div>
+                <div class="mb-2">
+                  <textarea name="dias[<%= fecha %>][comentario]" class="form-control form-control-sm" placeholder="Notas/Motivos" data-action="change->previsualizacion#recalcular"><%= entrada_dia&.comentario %></textarea>
+                </div>
               </td>
             <% end %>
 
@@ -94,6 +109,6 @@
     </table>
   </form>
   <div class="footer-nav">
-       <a href="#" class="nav-link-admin-button">« Volver al Panel Principal</a>
+       <%= link_to '« Volver al Menú', root_path, class: 'nav-link-admin-button' %>
   </div>
 </div>

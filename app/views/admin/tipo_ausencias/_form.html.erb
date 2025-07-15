@@ -48,7 +48,7 @@
       </div>
 
       <%# 3. ¿Es Retribuida? %>
-      <div class="mb-4 form-check form-switch fs-5">
+      <div class="mb-4 form-check form-switch">
         <%= form.check_box :es_retribuida, class: 'form-check-input', role: 'switch' %>
         <%= form.label :es_retribuida, '¿Es Retribuida?', class: 'form-check-label fw-bold' %>
         <div class="form-text mt-1">Si está marcado, las horas de ausencia cuentan como trabajadas para la jornada anual.</div>
@@ -75,7 +75,7 @@
       </div>
 
       <%# 5. ¿Genera un déficit en la bolsa? %>
-      <div class="mb-4 form-check form-switch fs-5">
+      <div class="mb-4 form-check form-switch">
         <%= form.check_box :genera_deuda_en_bolsa, class: 'form-check-input', role: 'switch' %>
         <%= form.label :genera_deuda_en_bolsa, '¿Genera un déficit en la bolsa?', class: 'form-check-label fw-bold' %>
         <div class="form-text mt-1">Si está marcado, la ausencia genera un déficit en la bolsa ordinaria que el trabajador deberá recuperar (ej. Ausencia Injustificada).</div>

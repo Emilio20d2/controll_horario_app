@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_25_100001) do
+ActiveRecord::Schema[7.1].define(version: 2025_07_25_100004) do
   create_table "asignacion_turnos", force: :cascade do |t|
     t.integer "trabajador_id", null: false
     t.integer "plantilla_horario_id", null: false
@@ -24,9 +24,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_100001) do
 
   create_table "bolsa_horas_saldos", force: :cascade do |t|
     t.integer "trabajador_id", null: false
-    t.decimal "horas", precision: 7, scale: 2, default: "0.0", null: false
-    t.decimal "festivos", precision: 7, scale: 2, default: "0.0", null: false
-    t.decimal "libranza", precision: 7, scale: 2, default: "0.0", null: false
+    t.decimal "saldo_bolsa_horas", precision: 7, scale: 2, default: "0.0", null: false
+    t.decimal "saldo_bolsa_festivos", precision: 7, scale: 2, default: "0.0", null: false
+    t.decimal "saldo_bolsa_libranza", precision: 7, scale: 2, default: "0.0", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["trabajador_id"], name: "index_bolsa_horas_saldos_on_trabajador_id", unique: true
@@ -73,15 +73,16 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_100001) do
     t.date "fecha_fin_vigencia"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "dias_laborables_semana_contratados", default: 5, null: false
     t.index ["trabajador_id"], name: "index_historial_contratos_on_trabajador_id"
   end
 
   create_table "historial_jornada_anuales", force: :cascade do |t|
     t.integer "trabajador_id", null: false
     t.integer "anio"
-    t.decimal "horas_teoricas", precision: 7, scale: 2
-    t.decimal "horas_reales", precision: 7, scale: 2
-    t.decimal "balance", precision: 7, scale: 2
+    t.decimal "jornada_anual_ajustada", precision: 7, scale: 2
+    t.decimal "horas_anuales_realizadas", precision: 7, scale: 2
+    t.decimal "balance_final", precision: 7, scale: 2
     t.text "datos_calculo"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

@@ -79,11 +79,11 @@ namespace :importar do
         end
 
         saldo_obj = BolsaHorasSaldo.find_or_create_by!(trabajador: trabajador)
-        saldo_obj.update!(
-          horas: trabajador.movimiento_bolsas.where(categoria_bolsa_afectada: :horas).sum(:cantidad_horas),
-          festivos: trabajador.movimiento_bolsas.where(categoria_bolsa_afectada: :festivos).sum(:cantidad_horas),
-          libranza: trabajador.movimiento_bolsas.where(categoria_bolsa_afectada: :libranza).sum(:cantidad_horas)
-        )
+        # Usamos los nombres de columna correctos del schema.rb
+        saldo_obj.saldo_bolsa_horas = trabajador.movimiento_bolsas.where(categoria_bolsa_afectada: :horas).sum(:cantidad_horas)
+        saldo_obj.saldo_bolsa_festivos = trabajador.movimiento_bolsas.where(categoria_bolsa_afectada: :festivos).sum(:cantidad_horas)
+        saldo_obj.saldo_bolsa_libranza = trabajador.movimiento_bolsas.where(categoria_bolsa_afectada: :libranza).sum(:cantidad_horas)
+        saldo_obj.save!
       end
       puts "Procesado saldo para: #{nombre_trabajador}"
     end

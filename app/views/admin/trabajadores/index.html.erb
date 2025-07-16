@@ -30,7 +30,13 @@
               <td class="py-3 px-4 align-middle"><%= trabajador.nombre %></td>
               <td class="py-3 px-4 align-middle"><%= trabajador.tipo_contrato&.nombre || 'N/A' %></td>
               <td class="py-3 px-4 align-middle"><%= number_to_human(trabajador.jornada_semanal_actual, precision: 2, strip_insignificant_zeros: true) %> h</td>
-              <td class="py-3 px-4 align-middle"><%= number_with_precision(trabajador.bolsa_horas_saldo&.horas, precision: 2) || '0.00' %></td>
+              <td class="py-3 px-4 align-middle">
+                <% saldo = trabajador.bolsa_horas_saldo %>
+                <%= number_with_precision(
+                  (saldo&.saldo_bolsa_horas || 0) + (saldo&.saldo_bolsa_festivos || 0) + (saldo&.saldo_bolsa_libranza || 0),
+                  precision: 2
+                ) %>
+              </td>
               <td class="text-end py-3 px-4 align-middle">
                 <%= link_to 'Ver Ficha', admin_trabajador_path(trabajador), class: 'btn btn-sm btn-primary' %>
               </td>

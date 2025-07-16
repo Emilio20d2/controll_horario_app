@@ -49,7 +49,11 @@
     </style>
 </head>
 <body>
-    <div class="container content-box">
+    <div class="container content-box"
+         data-controller="semanal"
+         data-semanal-year-value="<%= @anio_seleccionado %>"
+         data-semanal-week-num-value="<%= @semana_seleccionada %>"
+    >
         <div class="page-header">
             <h1>Confirmación Semanal</h1>
             <%= link_to "« Volver al Menú", '#', class: "nav-link-admin-button" %>
@@ -68,31 +72,22 @@
                                 <small><%= l(fecha, format: '%d/%m') %></small>
                             </th>
                         <% end %>
+                        <th>Total Comp.</th>
+                        <th>B. Horas</th>
+                        <th>B. Festivos</th>
+                        <th>B. Libranza</th>
                         <th class="acciones-col">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     <% @trabajadores.each do |trabajador| %>
                         <tr class="trabajador-row" 
-                            id="fila_trabajador_<%= trabajador.id %>" 
-                            data-controller="previsualizacion"
-                            data-previsualizacion-jornada-semanal-value="<%= trabajador.jornada_semanal_actual %>"
-                            data-previsualizacion-acumula-festivos-value="<%= trabajador.tipo_contrato.acumula_festivo_trabajado_en_bolsa %>"
-                            data-previsualizacion-acumula-libranza-value="<%= trabajador.tipo_contrato.acumula_festivo_en_libranza %>">
+                            id="fila_trabajador_<%= trabajador.id %>">
                             
                             <td class="empleado-cell">
                                 <strong><%= trabajador.nombre %></strong><br>
                                 <small class="text-muted"><%= trabajador.tipo_contrato.nombre %></small><br>
                                 <small>Jornada: <%= number_with_precision(trabajador.jornada_semanal_actual, precision: 2) %>h</small>
-                                <div class="preview-cell">
-                                    <hr>
-                                    <ul>
-                                        <li><span>Total Computado:</span> <strong data-previsualizacion-target="totalComputadas">...</strong></li>
-                                        <li><span>Impacto Bolsa Horas:</span> <strong data-previsualizacion-target="impactoOrdinaria">...</strong></li>
-                                        <li><span>Impacto Bolsa Festivos:</span> <strong data-previsualizacion-target="impactoFestivos">...</strong></li>
-                                        <li><span>Impacto Bolsa Libranza:</span> <strong data-previsualizacion-target="impactoLibranza">...</strong></li>
-                                    </ul>
-                                </div>
                             </td>
                             
                             <% @fechas_semana.each do |fecha| %>
@@ -101,14 +96,16 @@
                                 <% festivo_obj = @festivos_semana_map[fecha] %>
                                 <% es_festivo_apertura = festivo_obj&.apertura_autorizada %>
                                 
-                                <td class="day-cell <%= 'festivo' if festivo_obj %>" 
-                                    data-teoricas="<%= horas_teo %>" 
-                                    data-festivo="<%= festivo_obj.present? %>"
-                                    data-apertura-autorizada="<%= es_festivo_apertura %>">
+                                <td class="day-cell <%= 'festivo' if festivo_obj %>">
                                     
                                     <%= render 'dia_input', trabajador: trabajador, fecha: fecha, entrada_dia: entrada_dia, horas_teo: horas_teo, es_festivo_apertura: es_festivo_apertura, tipos_ausencia_options: @tipos_ausencia_options %>
                                 </td>
                             <% end %>
+
+                            <td><strong data-previsualizacion-target="totalComputadas">...</strong></td>
+                            <td><strong data-previsualizacion-target="impactoOrdinaria">...</strong></td>
+                            <td><strong data-previsualizacion-target="impactoFestivos">...</strong></td>
+                            <td><strong data-previsualizacion-target="impactoLibranza">...</strong></td>
 
                             <td class="acciones-cell">
                                 <button type="submit" class="btn btn-primary btn-sm">Guardar</button>

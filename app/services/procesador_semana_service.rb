@@ -93,7 +93,7 @@ class ProcesadorSemanaService
       impacto_bolsa_festivos -= horas_ausencia_dia if ausencia&.categoria_bolsa_afectada == 'festivos'
 
       # Impacto Bolsa LIBRANZA
-      impacto_bolsa_libranza += (@jornada_semanal_contratada / 5) if es_festivo && h_teo_dia.zero? && @contrato_acumula_festivo_libranza
+      impacto_bolsa_libranza += @trabajador.horas_para_bolsa_libranza(fecha) if es_festivo && h_teo_dia.zero? && @contrato_acumula_festivo_libranza
       impacto_bolsa_libranza -= horas_ausencia_dia if ausencia&.categoria_bolsa_afectada == 'libranza'
 
       # Consumo de bolsa principal

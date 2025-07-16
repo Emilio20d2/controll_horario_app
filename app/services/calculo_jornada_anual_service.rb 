@@ -1,0 +1,73 @@
+# /home/emilio/control_horario_app/app/services/calculo_jornada_anual_service.rb
+
+# Service Object para encapsular la lógica de cálculo de la jornada anual de un trabajador.
+# Centraliza una de las lógicas más complejas y propensas a error del sistema,
+# facilitando su mantenimiento y testeo.
+class CalculoJornadaAnualService
+  def initialize(trabajador, anio)
+    @trabajador = trabajador
+    @anio = anio
+    @fecha_inicio_anio = Date.new(@anio, 1, 1)
+    @fecha_fin_anio = Date.new(@anio, 12, 31)
+  end
+
+  # Método de conveniencia para llamar al servicio.
+  def self.call(trabajador, anio)
+    new(trabajador, anio).call
+  end
+
+  # Orquesta el cálculo completo y devuelve un hash con los resultados.
+  def call
+    jornada_teorica_individual = calcular_jornada_teorica_individual
+    ajuste_ausencias_no_retribuidas = calcular_ajuste_ausencias_no_retribuidas
+    horas_anuales_realizadas = calcular_horas_anuales_realizadas
+
+    jornada_anual_ajustada = jornada_teorica_individual - ajuste_ausencias_no_retribuidas
+    balance_final = horas_anuales_realizadas - jornada_anual_ajustada
+
+    {
+      jornada_anual_ajustada: jornada_anual_ajustada.to_f.round(2),
+      horas_anuales_realizadas: horas_anuales_realizadas.to_f.round(2),
+      balance_final: balance_final.to_f.round(2)
+    }
+  end
+
+  private
+
+  # Calcula la jornada teórica prorrateada del trabajador para el año,
+  # basándose en los periodos de su historial de contratos.
+  def calcular_jornada_teorica_individual
+    # Obtenemos las horas de convenio como base del cálculo.
+    horas_convenio_base = ConfiguracionJornada.find_by(anio: @anio)&.horas_maximas || 1792.0
+    jornada_teorica_individual = 0.0
+
+    contratos_del_anio = @trabajador.historial_contratos.where(
+      "fecha_inicio_vigencia <= ? AND (fecha_fin_vigencia IS NULL OR fecha_fin_vigencia >= ?)", @fecha_fin_anio, @fecha_inicio_anio
+    )
+
+    contratos_del_anio.each do |contrato|
+      fecha_inicio = [@fecha_inicio_anio, contrato.fecha_inicio_vigencia].max
+      fecha_fin = [@fecha_fin_anio, contrato.fecha_fin_vigencia || @fecha_fin_anio].min
+      dias_contrato_en_anio = (fecha_fin - fecha_inicio).to_i + 1
+
+      jornada_teorica_individual += (contrato.horas_semanales_contratadas / 40.0) * horas_convenio_base * (dias_contrato_en_anio / @fecha_inicio_anio.end_of_year.yday.to_f)
+    end
+
+    jornada_teorica_individual
+  end
+
+  # Calcula el total de horas teóricas que se deben restar de la jornada
+  # debido a ausencias no retribuidas.
+  def calcular_ajuste_ausencias_no_retribuidas
+    ids_ausencias_no_retribuidas = TipoAusencia.where(es_retribuida: false).pluck(:id)
+    @trabajador.entrada_diarias.where(fecha: @fecha_inicio_anio..@fecha_fin_anio, tipo_ausencia_id: ids_ausencias_no_retribuidas).sum { |e| @trabajador.horas_teoricas_para(e.fecha) }
+  end
+
+  # Calcula el total de horas efectivamente computables (trabajadas + ausencias retribuidas).
+  def calcular_horas_anuales_realizadas
+    horas_trabajadas = @trabajador.entrada_diarias.where(fecha: @fecha_inicio_anio..@fecha_fin_anio).sum(:horas_trabajadas)
+    ids_ausencias_retribuidas = TipoAusencia.where(es_retribuida: true).pluck(:id)
+    horas_ausencias_retribuidas = @trabajador.entrada_diarias.where(fecha: @fecha_inicio_anio..@fecha_fin_anio, tipo_ausencia_id: ids_ausencias_retribuidas).sum(:horas_ausencia)
+    horas_trabajadas + horas_ausencias_retribuidas
+  end
+end

@@ -3,7 +3,7 @@
 
 <div class="mb-2">
   <label class="form-label">H.Trab:</label>
-  <input type="number" name="dias[<%= fecha %>][horas_trabajadas]" value="<%= entrada_dia&.horas_trabajadas %>" placeholder="<%= '%.2f' % horas_teo %>" class="form-control form-control-sm" step="0.25" min="0" max="24" data-action="change->previsualizacion#recalcular">
+  <input type="number" name="dias[<%= fecha %>][horas_trabajadas]" value="<%= entrada_dia&.horas_trabajadas %>" placeholder="<%= '%.2f' % horas_teo %>" class="form-control form-control-sm" step="0.25" min="0" max="24" data-action="change->semanal#recalcularFila">
 </div>
 
 <div class="mb-2">
@@ -11,28 +11,27 @@
   <%= select_tag "dias[#{fecha}][tipo_ausencia_id]", 
       options_for_select(tipos_ausencia_options, entrada_dia&.tipo_ausencia_id),
       include_blank: '---', 
-      class: "form-select form-select-sm", data: { action: "change->previsualizacion#recalcular" } %>
+      class: "form-select form-select-sm", data: { action: "change->semanal#recalcularFila" } %>
 </div>
 
 <div class="mb-2">
   <label class="form-label">H.Ausencia:</label>
-  <input type="number" name="dias[<%= fecha %>][horas_ausencia]" value="<%= entrada_dia&.horas_ausencia %>" class="form-control form-control-sm" step="0.25" min="0" max="24" data-action="change->previsualizacion#recalcular" style="display: none;">
+  <input type="number" name="dias[<%= fecha %>][horas_ausencia]" value="<%= entrada_dia&.horas_ausencia %>" class="form-control form-control-sm" step="0.25" min="0" max="24" data-action="change->semanal#recalcularFila" style="display: none;">
 </div>
 
 <% if es_festivo_apertura %>
   <div class="form-check">
-    <input type="checkbox" name="dias[<%= fecha %>][pago_doble]" class="form-check-input" <%= 'checked' if entrada_dia&.pago_doble_marcado %> data-action="change->previsualizacion#recalcular">
+    <input type="checkbox" name="dias[<%= fecha %>][pago_doble]" class="form-check-input" <%= 'checked' if entrada_dia&.pago_doble_marcado %> data-action="change->semanal#recalcularFila">
     <label class="form-check-label">P. Doble</label>
   </div>
 <% end %>
 
 <div class="mt-2">
   <label class="form-label">H.Comp.P:</label>
-  <input type="number" name="dias[<%= fecha %>][horas_complementarias_pagadas]" value="<%= entrada_dia&.horas_complementarias_pagadas %>" class="form-control form-control-sm" step="0.25" min="0" max="24" data-action="change->previsualizacion#recalcular">
+  <input type="number" name="dias[<%= fecha %>][horas_complementarias_pagadas]" value="<%= entrada_dia&.horas_complementarias_pagadas %>" class="form-control form-control-sm" step="0.25" min="0" max="24" data-action="change->semanal#recalcularFila">
 </div>
 
 <div class="mt-2">
   <label class="form-label">Motivo:</label>
   <textarea name="dias[<%= fecha %>][motivo]" class="form-control form-control-sm" rows="1"><%= entrada_dia&.motivo %></textarea>
 </div>
-

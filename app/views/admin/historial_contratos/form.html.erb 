@@ -1,0 +1,37 @@
+<%# /home/emilio/control_horario_app/app/views/admin/historial_contratos/_form.html.erb %>
+
+<%= form_with(model: [:admin, @trabajador, @historial_contrato], local: true) do |f| %>
+  <% if f.object.errors.any? %>
+    <div class="alert alert-danger">
+      <h2><%= pluralize(f.object.errors.count, "error") %> impidieron guardar el registro:</h2>
+      <ul>
+        <% f.object.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= f.label :fecha_inicio_vigencia, class: "form-label" %>
+    <%= f.date_field :fecha_inicio_vigencia, class: "form-control", required: true %>
+    <div class="form-text">Fecha en la que entra en vigor esta nueva jornada.</div>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :horas_semanales_contratadas, class: "form-label" %>
+    <%= f.number_field :horas_semanales_contratadas, class: "form-control", step: 0.25, required: true %>
+    <div class="form-text">Horas semanales según contrato (p. ej., 40, 37.5, 20).</div>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :dias_laborables_semana_contratados, "Días laborables por semana", class: "form-label" %>
+    <%= f.number_field :dias_laborables_semana_contratados, class: "form-control", in: 1..7, step: 1, required: true %>
+    <div class="form-text">Número de días laborables a la semana (p. ej., 5 para L-V, 4 para jornada comprimida). Crucial para el cálculo de festivos en día libre.</div>
+  </div>
+
+  <div class="actions mt-4">
+    <%= f.submit "Guardar Nueva Jornada", class: "btn btn-primary" %>
+    <%= link_to 'Cancelar', admin_trabajador_path(@trabajador), class: 'btn btn-secondary' %>
+  </div>
+<% end %>

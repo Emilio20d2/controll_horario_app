@@ -1,4 +1,4 @@
-lass Admin::TrabajadoresController < ApplicationController
+class Admin::TrabajadoresController < ApplicationController
   before_action :set_trabajador, only: [:show, :edit, :update, :destroy]
 
   def index
@@ -11,7 +11,8 @@ lass Admin::TrabajadoresController < ApplicationController
     @historial_jornada_anual_registros = @trabajador.historial_jornada_anuals.order(anio: :desc)
     
     @anio_actual = Date.today.year
-    # La lógica para @calculo_jornada_actual se añadirá cuando el Service Object esté completo.
+    # Calculamos la jornada anual para el año actual y la pasamos a la vista.
+    @calculo_jornada_actual = @trabajador.calculo_jornada_anual(@anio_actual)
   end
 
   def new

@@ -19,6 +19,9 @@ Rails.application.routes.draw do
   get 'fichajes/semanal', to: 'fichajes#semanal'
   post 'fichajes/procesar_fila', to: 'fichajes#procesar_fila', as: 'procesar_fila_trabajador'
   post 'fichajes/previsualizar', to: 'fichajes#previsualizar', as: 'previsualizar_fila'
+  # Añadimos la nueva ruta para el endpoint de API JSON.
+  # Esto desacoplará el frontend del backend, como se recomienda en la auditoría.
+  get 'fichajes/semana_data', to: 'fichajes#semana_data', as: 'fichajes_semana_data'
 
   # Ruta para el historial de movimientos de un trabajador (restringido a IDs numéricos)
   get 'trabajadores/:trabajador_id/movimientos', to: 'movimientos#index', as: 'trabajador_movimientos', constraints: { trabajador_id: /\d+/ }

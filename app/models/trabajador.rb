@@ -1,99 +1,103 @@
+# Define el modelo para un trabajador, que es la entidad central de la aplicación.
+# Contiene la lógica de negocio para calcular las horas teóricas y encontrar
+# los contratos y asignaciones de turno vigentes en una fecha específica.
 class Trabajador < ApplicationRecord
+  # --- ASOCIACIONES ---
+  # Se especifica que debe existir un tipo de contrato asociado.
   belongs_to :tipo_contrato
 
-  has_many :asignacion_turnos, dependent: :destroy
-  has_many :plantilla_horarios, through: :asignacion_turnos
-  has_many :historial_contratos, dependent: :destroy
-  has_many :entrada_diarias, dependent: :destroy
-  has_many :movimiento_bolsas, dependent: :destroy
-  has_many :limite_festivo_libranzas, dependent: :destroy
+  # Asociaciones con otros modelos que almacenan datos del trabajador.
+  # El orden en `asignacion_turnos` es crucial para encontrar el turno vigente.
   has_one :bolsa_horas_saldo, dependent: :destroy
-  has_many :historial_jornada_anuals, dependent: :destroy
+  has_many :historial_contratos, -> { order(fecha_inicio_vigencia: :desc) }, dependent: :destroy
+  has_many :asignacion_turnos, -> { order(fecha_inicio: :desc) }, dependent: :destroy
+  has_many :movimiento_bolsas, dependent: :destroy
+  has_many :entrada_diarias, dependent: :destroy
 
-  validates :nombre, presence: true
+  # --- VALIDACIONES ---
+  validates :nombre, presence: true, uniqueness: { case_sensitive: false }
 
+  # --- LÓGICA DE NEGOCIO ---
+
+  # Encuentra el contrato que estaba vigente en una fecha determinada.
+  # Utiliza el orden descendente de `fecha_inicio_vigencia` para obtener el más reciente.
+  def contrato_vigente_en(fecha)
+    historial_contratos.find { |h| h.fecha_inicio_vigencia <= fecha }
+  end
+
+  # Calcula las horas teóricas que un trabajador debe realizar en una fecha específica,
+  # basándose en su asignación de turno y el patrón de rotación.
   def horas_teoricas_para(fecha)
-    # Busca la asignación de turno activa para esta fecha
+    # 1. Encontrar la asignación de turno activa para la fecha dada.
     asignacion = asignacion_turnos.where("fecha_inicio <= ? AND (fecha_fin IS NULL OR fecha_fin >= ?)", fecha, fecha).order(fecha_inicio: :desc).first
     return 0.0 unless asignacion&.plantilla_horario&.horario
 
     plantilla = asignacion.plantilla_horario
-    
+
     # Calcular la semana del ciclo
     dias_desde_inicio = (fecha - asignacion.fecha_inicio).to_i
     semana_del_ciclo = (dias_desde_inicio / 7) % 4 + 1
-    
+
     # Obtener el día de la semana (wday devuelve 0 para domingo, 1 para lunes...)
     dias_map = %w[domingo lunes martes miercoles jueves viernes sabado]
     dia_key = dias_map[fecha.wday]
 
-    # Usar .dig para navegar de forma segura por el Hash
+    # 3. Obtener el día de la semana como una clave de texto (ej. 'lunes').
+    # El `wday` de Ruby va de Domingo (0) a Sábado (6). Lo mapeamos al formato del JSON.
+    dia_semana_map = { 1 => 'lunes', 2 => 'martes', 3 => 'miercoles', 4 => 'jueves', 5 => 'viernes', 6 => 'sabado', 0 => 'domingo' }
+    dia_key = dia_semana_map[fecha.wday]
+
+    # 4. Extraer las horas del JSON del horario usando las claves calculadas.
+    # `dig` es una forma segura de navegar el hash, devuelve nil si una clave no existe.
     BigDecimal(plantilla.horario.dig("semana#{semana_del_ciclo}", dia_key)&.to_s || "0.0").to_f
   end
+end
+# Define el modelo para un trabajador, que es la entidad central de la aplicación.
+# Contiene la lógica de negocio para calcular las horas teóricas y encontrar
+# los contratos y asignaciones de turno vigentes en una fecha específica.
+class Trabajador < ApplicationRecord
+  # --- ASOCIACIONES ---
+  # Se especifica que debe existir un tipo de contrato asociado.
+  belongs_to :tipo_contrato
 
-  def jornada_semanal_actual(fecha = Date.today)
-    historial_contratos.where('fecha_inicio_vigencia <= ?', fecha)
-                       .order(fecha_inicio_vigencia: :desc)
-                       .first&.horas_semanales_contratadas || 0.0
-  end
+  # Asociaciones con otros modelos que almacenan datos del trabajador.
+  # El orden en `asignacion_turnos` es crucial para encontrar el turno vigente.
+  has_one :bolsa_horas_saldo, dependent: :destroy
+  has_many :historial_contratos, -> { order(fecha_inicio_vigencia: :desc) }, dependent: :destroy
+  has_many :asignacion_turnos, -> { order(fecha_inicio: :desc) }, dependent: :destroy
+  has_many :movimiento_bolsas, dependent: :destroy
+  has_many :entrada_diarias, dependent: :destroy
 
-  private
+  # --- VALIDACIONES ---
+  validates :nombre, presence: true, uniqueness: { case_sensitive: false }
 
-  def calcular_jornada_teorica_individual(anio)
-    fecha_inicio_anio = Date.new(anio, 1, 1)
-    fecha_fin_anio = Date.new(anio, 12, 31)
-    horas_convenio_base = ConfiguracionJornada.find_by(anio: anio)&.horas_maximas || 1792.0
-    jornada_teorica_individual = 0
+  # --- LÓGICA DE NEGOCIO ---
 
-    historial_contratos.where("fecha_inicio_vigencia <= ? AND (fecha_fin_vigencia IS NULL OR fecha_fin_vigencia >= ?)", fecha_fin_anio, fecha_inicio_anio).each do |contrato|
-      dias_contrato_en_anio = [fecha_fin_anio, contrato.fecha_fin_vigencia || fecha_fin_anio].min - [fecha_inicio_anio, contrato.fecha_inicio_vigencia].max + 1
-      jornada_teorica_individual += (contrato.horas_semanales_contratadas / 40.0) * horas_convenio_base * (dias_contrato_en_anio / (anio % 4 == 0 ? 366.0 : 365.0))
-  end
-
-    jornada_teorica_individual
-  end
-
-  def calcular_ajuste_ausencias_no_retribuidas(anio)
-    fecha_inicio_anio = Date.new(anio, 1, 1)
-    fecha_fin_anio = Date.new(anio, 12, 31)
-
-    ids_ausencias_no_retribuidas = TipoAusencia.where(es_retribuida: false).pluck(:id)
-    ajuste_ausencias_no_retribuidas = 0
-
-    entrada_diarias.where(fecha: fecha_inicio_anio..fecha_fin_anio, tipo_ausencia_id: ids_ausencias_no_retribuidas).each do |entrada|
-      ajuste_ausencias_no_retribuidas += horas_teoricas_para(entrada.fecha)
-    end
-
-    ajuste_ausencias_no_retribuidas
-  end
-
-  def calcular_horas_anuales_realizadas(anio)
-    fecha_inicio_anio = Date.new(anio, 1, 1)
-    fecha_fin_anio = Date.new(anio, 12, 31)
-    horas_trabajadas = entrada_diarias.where(fecha: fecha_inicio_anio..fecha_fin_anio).sum(:horas_trabajadas)
-    ids_ausencias_retribuidas = TipoAusencia.where(es_retribuida: true).pluck(:id)
-    horas_ausencias = entrada_diarias.where(fecha: fecha_inicio_anio..fecha_fin_anio, tipo_ausencia_id: ids_ausencias_retribuidas).sum(:horas_ausencia)
-    horas_trabajadas + horas_ausencias
-  end
-
-  # Devuelve el registro de contrato que estaba activo en una fecha específica.
-  # Es un método clave para cálculos que dependen del historial.
-  #
-  # @param fecha [Date] La fecha para la cual se busca el contrato.
-  # @return [HistorialContrato, nil] El registro del contrato o nil si no se encuentra.
+  # Encuentra el contrato que estaba vigente en una fecha determinada.
+  # Utiliza el orden descendente de `fecha_inicio_vigencia` para obtener el más reciente.
   def contrato_vigente_en(fecha)
-    historial_contratos.where('fecha_inicio_vigencia <= ?', fecha)
-                       .order(fecha_inicio_vigencia: :desc)
-                       .first
+    historial_contratos.find { |h| h.fecha_inicio_vigencia <= fecha }
   end
 
-  # Delegamos el cálculo de la jornada anual al service object.
-  # Esto aísla la lógica compleja y facilita su testeo y mantenimiento.
-  def calculo_jornada_anual(anio) # <-- Cambiado a public
-    CalculoJornadaAnualService.call(self, anio) # Asegúrate de que este Service Object exista y esté implementado.
-  end
-  
-  private # Movemos el private al final
+  # Calcula las horas teóricas que un trabajador debe realizar en una fecha específica,
+  # basándose en su asignación de turno y el patrón de rotación.
+  def horas_teoricas_para(fecha)
+    # 1. Encontrar la asignación de turno activa para la fecha dada.
+    asignacion = asignacion_turnos.find { |a| a.fecha_inicio <= fecha }
+    return 0 unless asignacion&.plantilla_horario&.horario.present?
 
-  # ... (resto de métodos, incluyendo horas_para_bolsa_libranza) ...
+    plantilla = asignacion.plantilla_horario
+    fecha_referencia = plantilla.fecha_referencia
+
+    # 2. Calcular la semana de rotación y el día
+    dias_diferencia = (fecha.to_date - fecha_referencia.beginning_of_week(:monday).to_date).to_i
+    semana_rotacion_idx = (dias_diferencia / 7) % 4
+    turno_key = "turno#{semana_rotacion_idx + 1}"
+    dia_semana_map = { 1 => 'lunes', 2 => 'martes', 3 => 'miercoles', 4 => 'jueves', 5 => 'viernes', 6 => 'sabado', 0 => 'domingo' }
+    dia_key = dia_semana_map[fecha.wday]
+
+    # 3. Extraer las horas del JSON, convertir a minutos y devolver como entero.
+    horas_decimal = plantilla.horario.dig(turno_key, dia_key).to_f
+    (horas_decimal * 60).to_i
+  end
 end

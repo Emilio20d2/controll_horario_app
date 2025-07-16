@@ -33,4 +33,9 @@
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
-\nvendor/bundle/
+
+vendor/bundle/
+
+# Ignorar claves SSH privadas/públicas si están en el proyecto
+emilio
+emilio.pub

@@ -9,5 +9,5 @@ class HistorialJornadaAnual < ApplicationRecord
   validates :anio, presence: true, uniqueness: { scope: :trabajador_id, message: "ya tiene un registro para este año" }
 
   # Asegura que los campos de horas siempre sean numéricos y estén presentes.
-  validates :jornada_anual_ajustada, :horas_anuales_realizadas, :balance_final, presence: true, numericality: true  
+  validates :jornada_anual_ajustada, :horas_anuales_realizadas, :balance_final, presence: true, numericality: { only_integer: true }
 end

@@ -113,7 +113,7 @@ class FichajesController < ApplicationController
           dias_laborables_semana: contrato_vigente&.dias_laborables_semana_contratados || 5,
           horas_semanales: contrato_vigente&.horas_semanales_contratadas&.to_f || 0.0
         }
-      }
+      }.tap { |data| puts "Trabajador #{trabajador.nombre}: #{data}" }
     end
 
     # Paso 3.1.c: Serializar las reglas globales (Tipos de Ausencia y Festivos).
@@ -145,7 +145,7 @@ class FichajesController < ApplicationController
     horas_teoricas_map = trabajadores.each_with_object({}) do |trabajador, hash|
       hash[trabajador.id] = {}
       fechas_semana.each do |fecha|
-        hash[trabajador.id][fecha.to_s] = trabajador.horas_teoricas_para(fecha)
+        hash[trabajador.id][fecha.to_s] = (trabajador.horas_teoricas_para(fecha) / 60.0).round(2)
       end
     end
 
@@ -156,11 +156,13 @@ class FichajesController < ApplicationController
     ).group_by(&:trabajador_id).transform_values do |entradas|
       entradas.index_by(&:fecha).transform_keys(&:to_s).transform_values do |entrada|
         {
-          horas_trabajadas: entrada.horas_trabajadas&.to_f,
-          horas_ausencia: entrada.horas_ausencia&.to_f,
-          horas_comp_pagadas: entrada.horas_comp_pagadas&.to_f,
+          # CORRECCIÓN: Ahora todos los campos de horas se convierten de minutos (BD) a horas (JSON).
+          # Usamos `|| 0` para manejar valores nulos antes de la división.
+          horas_trabajadas: (entrada.horas_trabajadas || 0) / 60.0,
+          horas_ausencia: (entrada.horas_ausencia || 0) / 60.0,
+          horas_comp_pagadas: (entrada.horas_comp_pagadas || 0) / 60.0,
           tipo_ausencia_id: entrada.tipo_ausencia_id,
-          pago_doble: entrada.pago_doble
+          pago_doble: entrada.pago_doble || false
         }
       end
     end

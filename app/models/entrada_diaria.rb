@@ -9,8 +9,8 @@ class EntradaDiaria < ApplicationRecord
   self.table_name = 'entrada_diarias'
 
   validates :fecha, presence: true
-  validates :horas_trabajadas, numericality: { greater_than_or_equal_to: 0 }, multiple_of: { multiple_of: 0.25 }, allow_nil: true
-  validates :horas_ausencia, numericality: { greater_than_or_equal_to: 0 }, multiple_of: { multiple_of: 0.25 }, allow_nil: true
+  validates :horas_trabajadas, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :horas_ausencia, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   # El nombre del atributo debe coincidir con la columna de la base de datos.
-  validates :horas_comp_pagadas, numericality: { greater_than_or_equal_to: 0 }, multiple_of: { multiple_of: 0.25 }, allow_nil: true
+  validates :horas_comp_pagadas, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
 end

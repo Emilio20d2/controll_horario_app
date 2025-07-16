@@ -11,7 +11,17 @@ class Admin::HistorialContratosController < ApplicationController
   end
 
   def create
-    @historial_contrato = @trabajador.historial_contratos.new(historial_contrato_params)
+    # Preparamos los parámetros, convirtiendo las horas a minutos antes de crear el objeto.
+    safe_params = historial_contrato_params.dup
+    if safe_params[:horas_semanales_contratadas].present?
+      begin
+        horas_decimales = BigDecimal(safe_params[:horas_semanales_contratadas].to_s.tr(',', '.'))
+        safe_params[:horas_semanales_contratadas] = (horas_decimales * 60).to_i
+      rescue ArgumentError
+        # Si la conversión falla, se mantendrá el valor original y la validación del modelo fallará.
+      end
+    end
+    @historial_contrato = @trabajador.historial_contratos.new(safe_params)
 
     if @historial_contrato.save
       redirect_to admin_trabajador_path(@trabajador), notice: 'La nueva jornada ha sido guardada correctamente.'

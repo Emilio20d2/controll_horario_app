@@ -14,8 +14,8 @@ class Admin::HistorialJornadaAnualesController < ApplicationController
 
     # 3. Asignar los valores calculados y guardar.
     historial.assign_attributes(
-      jornada_anual_ajustada: calculo[:horas_teoricas],
-      horas_realizadas: calculo[:horas_reales],
+      jornada_anual_ajustada: calculo[:horas_teoricas] * 60,
+      horas_anuales_realizadas: (calculo[:horas_reales] * 60).round,
       balance_final: calculo[:balance]
     )
 

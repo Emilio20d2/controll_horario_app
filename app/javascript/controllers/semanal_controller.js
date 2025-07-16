@@ -1,4 +1,4 @@
-import { Controller } from "@hotwired/stimulus"
+import { Controller } from "@hotwired/stimulus";
 
 // Connects to data-controller="semanal"
 export default class extends Controller {
@@ -10,11 +10,12 @@ export default class extends Controller {
   }
 
   connect() {
-    this.fetchData();
+    this.fetchData(); // Carga los datos al conectar el controlador
   }
 
   async fetchData() {
-    // Construimos la URL del endpoint usando los values que hemos recibido.
+    // Construimos la URL del endpoint usando los values.
+    // **IMPORTANTE**: El backend ahora SIEMPRE envía las horas como decimales.
     const url = `/fichajes/semana_data?year=${this.yearValue}&week_num=${this.weekNumValue}`;
 
     try {
@@ -24,23 +25,23 @@ export default class extends Controller {
       }
       const data = await response.json();
 
-      // Paso 3.2.d: Almacenar los datos en propiedades del controlador para su uso posterior.
+      // Almacenamos los datos en propiedades del controlador.
       this.fechasSemana = data.fechas_semana;
       this.trabajadores = data.trabajadores;
       this.tiposAusencia = data.tipos_ausencia;
       this.festivosSemana = data.festivos_semana;
       this.horasTeoricas = data.horas_teoricas;
-      this.entradasDiarias = data.entradas_diarias;
+      this.entradasDiarias = data.entradas_diarias; // Horas vienen en decimal
       this.semanasProcesadasIds = data.semanas_procesadas_ids;
 
-      // Paso Final: Calcular todos los totales al cargar la página.
+      // Calcular todos los totales al cargar la página.
       this.element.querySelectorAll('.trabajador-row').forEach(fila => {
         this._calcularYActualizarFila(fila);
       });
 
     } catch (error) {
       console.error("No se pudieron cargar los datos de la semana:", error);
-      // Opcional: Mostrar un mensaje de error al usuario en la UI.
+      // Opcional: Mostrar un mensaje de error al usuario.
       this.element.innerHTML = "<p class='text-danger text-center'>Error al cargar los datos. Por favor, intente recargar la página.</p>";
     }
   }
@@ -51,7 +52,7 @@ export default class extends Controller {
    * @param {Event} event El evento que disparó la acción (ej. input, change).
    */
   recalcularFila(event) {
-    // Identificamos la fila completa (<tr>) que contiene el input que cambió.
+    // Fila completa (<tr>) que contiene el input que cambió.
     const fila = event.target.closest('.trabajador-row');
     if (!fila) return;
 
@@ -67,7 +68,7 @@ export default class extends Controller {
     // Extraemos el ID del trabajador desde el id del elemento <tr>
     const trabajadorId = fila.id.split('_').pop();
 
-    // Creamos un objeto para almacenar los datos de la semana leídos desde los inputs.
+    // Almacenar los datos de la semana leídos desde los inputs.
     const datosSemana = [];
     const celdas = fila.querySelectorAll('.day-cell');
 
@@ -79,7 +80,7 @@ export default class extends Controller {
       const hCompPagadasInput = celda.querySelector('input[name*="[horas_complementarias_pagadas]"]');
       const pagoDobleCheckbox = celda.querySelector('input[name*="[pago_doble]"]');
 
-      // Leemos los valores, convirtiendo a número donde sea necesario y manejando valores por defecto.
+      // Leer los valores, convirtiendo a número y manejando valores por defecto.
       const horasTrabajadas = parseFloat(horasTrabajadasInput.value) || parseFloat(horasTrabajadasInput.placeholder) || 0;
       const tipoAusenciaId = tipoAusenciaSelect.value ? parseInt(tipoAusenciaSelect.value) : null;
       const horasAusencia = parseFloat(horasAusenciaInput.value) || 0;
@@ -96,12 +97,12 @@ export default class extends Controller {
       });
     });
     
-    // Obtenemos la info del trabajador desde los datos cargados, usando el ID.
+    // Info del trabajador desde los datos cargados, usando el ID.
     const trabajador = this.trabajadores.find(t => t.id == trabajadorId);
     if (!trabajador) {
       console.error(`Trabajador con ID ${trabajadorId} no encontrado en los datos.`);
       return;
-    }
+    }  
     
     // Inicializamos los acumuladores para los cálculos.
     let totalHorasComputadas = 0;
@@ -115,67 +116,65 @@ export default class extends Controller {
       const esFestivo = !!this.festivosSemana[dia.fecha];
       const esDiaLibre = horasTeoricasDelDia === 0;
 
-      // 1. Cálculo del Total de Horas Computadas (reutilizando la lógica de previsualizacion_controller.js)
+      // 1. Total Horas Computadas (reutilizando la lógica de previsualizacion_controller.js)
       let computadasDelDia = dia.horasTrabajadas;
       let horasAusenciaDelDia = 0; // Necesitamos esta variable para los cálculos de bolsa.
       
       if (dia.tipoAusenciaId) {
         const tipoAusencia = this.tiposAusencia.find(ta => ta.id === dia.tipoAusenciaId);
         if (tipoAusencia) {
-          // Determinamos las horas de ausencia según si es fraccionable o no.
+          // Horas de ausencia según si es fraccionable o no.
           horasAusenciaDelDia = tipoAusencia.es_fraccionable ? dia.horasAusencia : horasTeoricasDelDia;
 
           if (tipoAusencia.es_retribuida) { computadasDelDia += horasAusenciaDelDia; }
           if (tipoAusencia.genera_deuda) { computadasDelDia -= horasAusenciaDelDia; }
         }
       }
-      totalHorasComputadas += computadasDelDia;
+      totalHorasComputadas += computadasDelDia; // Acumulamos
       
-      // 2. Cálculo Bolsa FESTIVOS y LIBRANZA
-      // Un día no puede generar para ambas bolsas a la vez.
+      // 2. Bolsa FESTIVOS y LIBRANZA (Un día no puede generar para ambas bolsas a la vez)
 
       if (esFestivo && dia.horasTrabajadas > 0 && !dia.pagoDoble && trabajador.reglas_contrato.acumula_festivo_trabajado) {
-        // Si trabaja en festivo y no se le paga doble, va a la bolsa de festivos si su contrato lo permite.
+        // Festivo trabajado sin pago doble -> a bolsa de festivos (si contrato lo permite)
         impactoBolsaFestivos += dia.horasTrabajadas;
       } else if (esFestivo && esDiaLibre && trabajador.reglas_contrato.acumula_festivo_libranza) {
-        // Si es festivo en un día de libranza, genera bolsa de libranza si su contrato lo permite.
+        // Festivo en libranza -> genera bolsa de libranza (si contrato lo permite)
         const contrato = trabajador.contrato_vigente;
         // **CORRECCIÓN CLAVE**: Usamos los días laborables del contrato, no el número mágico 5.
         if (contrato.dias_laborables_semana > 0) {
           impactoBolsaLibranza += contrato.horas_semanales / contrato.dias_laborables_semana;
         }
       }
-
-      // 3. Cálculo del disfrute de bolsas (resta de horas)
+      
+      // 3. Disfrute de bolsas (resta de horas)
       if (dia.tipoAusenciaId) {
         const tipoAusencia = this.tiposAusencia.find(ta => ta.id === dia.tipoAusenciaId);
         if (tipoAusencia?.bolsa_afectada === 'festivos') { impactoBolsaFestivos -= horasAusenciaDelDia; }
         if (tipoAusencia?.bolsa_afectada === 'libranza') { impactoBolsaLibranza -= horasAusenciaDelDia; }
       }
 
-      // 4. Cálculo Bolsa HORAS (Ordinaria)
-      // Horas que cuentan para el balance diario.
+      // 4. Bolsa HORAS (Ordinaria) - Horas que cuentan para el balance diario.
       let horasParaBalanceDiario = dia.horasTrabajadas - dia.hCompPagadas;
 
       if (esFestivo && dia.horasTrabajadas > 0 && !dia.pagoDoble && trabajador.reglas_contrato.acumula_festivo_trabajado) {
-        // Si las horas ya fueron a la bolsa de festivos, no cuentan para el balance ordinario.
+        // Si las horas ya fueron a festivos, no cuentan para el ordinario.
         horasParaBalanceDiario = 0;
       }
 
-      // El impacto es la diferencia entre las horas reales computables y las teóricas.
+      // El impacto es la diferencia entre las horas computables y las teóricas.
       impactoBolsaOrdinaria += (horasParaBalanceDiario - horasTeoricasDelDia);
 
-      // Si una ausencia genera deuda, resta directamente de la bolsa de horas.
+      // Ausencia que genera deuda -> resta de la bolsa de horas.
       if (dia.tipoAusenciaId) {
         const tipoAusencia = this.tiposAusencia.find(ta => ta.id === dia.tipoAusenciaId);
         if (tipoAusencia?.genera_deuda) {
           impactoBolsaOrdinaria -= horasAusenciaDelDia;
         }
       }
-      
     });
 
-    this.actualizarVistaFila(fila, { // Actualizar la interfaz de usuario con los resultados calculados.
+    // 5. Actualizar la interfaz con los resultados.
+    this.actualizarVistaFila(fila, {
       totalComputadas: totalHorasComputadas,
       impactoOrdinaria: impactoBolsaOrdinaria,
       impactoFestivos: impactoBolsaFestivos,
@@ -184,12 +183,12 @@ export default class extends Controller {
   }
 
   /**
-   * Actualiza los elementos <strong> de la previsualización en la fila especificada.
+   * Actualiza la previsualización en la fila especificada.
    * @param {HTMLElement} fila El elemento <tr> de la fila a actualizar.
    * @param {Object} resultados Un objeto con los valores calculados.
    */
   actualizarVistaFila(fila, resultados) {
-    fila.querySelector('[data-previsualizacion-target="totalComputadas"]').textContent = `${resultados.totalComputadas.toFixed(2)}h`;
+    fila.querySelector('[data-previsualizacion-target="totalComputadas"]').textContent = `${resultados.totalComputadas.toFixed(2)}h`; // Formato: 0.00h
     fila.querySelector('[data-previsualizacion-target="impactoOrdinaria"]').textContent = `${resultados.impactoOrdinaria.toFixed(2)}h`;
     fila.querySelector('[data-previsualizacion-target="impactoFestivos"]').textContent = `${resultados.impactoFestivos.toFixed(2)}h`;
     fila.querySelector('[data-previsualizacion-target="impactoLibranza"]').textContent = `${resultados.impactoLibranza.toFixed(2)}h`;
@@ -198,3 +197,71 @@ export default class extends Controller {
     fila.classList.add('fila-modificada');
   }
 }
+  /**
+   * Dispara el procesamiento y guardado definitivo de los datos de una fila.
+   * @param {Event} event El evento de click del botón 'Procesar Semana'.
+   */
+ 
+  procesarFila(event) 
+    event.preventDefault(); // Prevenir envío tradicional del formulario.
+
+    const fila = event.target.closest('.trabajador-row');
+    const trabajadorId = fila.id.split('_').pop();
+    const url = this.element.dataset.urlProcesarFila; // Asume que la URL está en el elemento del controlador
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    // 1. Recolectamos los datos actuales de todos los inputs de la fila.
+    const datosParaEnviar = {};
+    fila.querySelectorAll('.day-cell').forEach(celda => {
+      const fecha = celda.dataset.fecha;
+      const hTrabajadas = celda.querySelector('input[name*="[horas_trabajadas]"]').value;
+      const tAusencia = celda.querySelector('select[name*="[tipo_ausencia_id]"]').value;
+      const hAusencia = celda.querySelector('input[name*="[horas_ausencia]"]').value;
+      const hComp = celda.querySelector('input[name*="[horas_complementarias_pagadas]"]').value;
+      const pDoble = celda.querySelector('input[name*="[pago_doble]"]');
+
+      // Construimos un objeto con los datos del día.
+      datosParaEnviar[fecha] = {
+        horas_trabajadas: hTrabajadas || 0,
+        tipo_ausencia_id: tAusencia || null,
+        horas_ausencia: hAusencia || 0,
+        horas_complementarias_pagadas: hComp || 0,
+        pago_doble: pDoble ? pDoble.checked : false
+      };
+    });
+
+    // --- AQUÍ CONTINUAREMOS EN EL SIGUIENTE PASO ---
+  
+         // 2. Enviamos los datos al servidor usando fetch.
+     fetch(url, {
+       method: 'POST',
+       headers: {
+         'Content-Type': 'application/json',
+         'X-CSRF-Token': csrfToken
+       },
+       body: JSON.stringify({
+         trabajador_id: trabajadorId,
+         anio: this.yearValue,
+         week_num: this.weekNumValue, // Aseguramos que el nombre del parámetro coincida.
+         datos_dias: datosParaEnviar,
+         autenticidad_token: csrfToken // Pasamos el token en el cuerpo del JSON
+       })
+     })
+     .then(response => response.json()) // Intentamos parsear la respuesta como JSON
+     .then(result => {
+       if (result.success) {
+         // Si todo OK, indicamos visualmente que la fila ha sido procesada.
+         fila.classList.add('bg-success-light');
+         fila.querySelector('.procesar-btn').disabled = true;
+         console.log(result.message);
+         // Opcional: mostrar un mensaje de éxito al usuario.
+       } else {
+         throw new Error(result.error || 'Ocurrió un error desconocido.');
+       }
+     })
+     .catch(error => {
+       console.error('Error al procesar la fila:', error);
+       alert(`Error al procesar la semana: ${error.message}`);
+       // Opcional: mostrar un mensaje de error más amigable en la UI.
+     });
+

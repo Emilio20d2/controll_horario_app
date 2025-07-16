@@ -4,5 +4,5 @@ class LimiteFestivoLibranza < ApplicationRecord
   belongs_to :trabajador
 
   validates :anio, presence: true, uniqueness: { scope: :trabajador_id }
-  validates :horas_acumuladas, presence: true, numericality: { greater_than_or_equal_to: 0 }
+  validates :horas_acumuladas, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 end

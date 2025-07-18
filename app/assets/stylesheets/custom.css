@@ -111,26 +111,18 @@ form label {
   align-items: center;
 }
 
-/* --- Cabecera Fija Superior --- */
-.fixed-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1030;
-  background-color: #5F9EA0;
-  color: #fff;
-  padding: 0.5rem 1rem;
+/* Estilos específicos para el listado de empleados */
+.contenedor-empleados {
+  margin: 0 auto;
+  padding: 0 40px;
 }
 
-.fixed-header .app-title {
-  color: #fff;
+.contenedor-empleados thead th {
+  color: #000;
 }
 
-.fixed-header .header-actions .btn {
-  margin-left: 0.5rem;
-}
+.contenedor-empleados th,
+.contenedor-empleados td {
+  padding: 10px 15px;
 
-body.with-fixed-header {
-  padding-top: 56px;
 }

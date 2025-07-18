@@ -7,15 +7,15 @@
   Variables de instancia utilizadas:
   - @entradas_diarias_map: Mapa con las entradas ya guardadas.
   - @tipos_ausencia: Colección de todos los tipos de ausencia.
-  - @festivos_semana: Array con las fechas que son festivo.
+  - @festivos_semana_map: Hash con los festivos de la semana (clave: fecha).
 %>
 <%
   # Obtenemos la entrada diaria para este trabajador y fecha, si existe.
   entrada_diaria = @entradas_diarias_map.dig(trabajador.id, fecha) || EntradaDiaria.new
   # Calculamos las horas teóricas para este día.
   horas_teo_dia = trabajador.horas_teoricas_para(fecha)
-  # Verificamos si el día es festivo.
-  es_festivo = @festivos_semana.include?(fecha)
+  # Verificamos si el día es festivo utilizando el mapa de festivos.
+  es_festivo = @festivos_semana_map&.key?(fecha)
   # Definimos qué ausencias son fraccionables (requieren input de horas) según su modalidad.
   ausencias_fraccionables = ['devolucion_festivo', 'libranza_festivo']
   # Verificamos si la ausencia seleccionada es fraccionable para el estado inicial

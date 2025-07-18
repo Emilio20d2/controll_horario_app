@@ -6,7 +6,7 @@
   - @fechas_semana: Array con las fechas de la semana.
   - @entradas_diarias_map: Mapa con las entradas ya guardadas.
   - @tipos_ausencia: Colección de todos los tipos de ausencia.
-  - @festivos_semana: Array con las fechas que son festivo.
+  - @festivos_semana_map: Hash con los festivos de la semana (clave: fecha).
 %>
 <% contrato_vigente = trabajador.contrato_vigente_en(@fechas_semana.first) %>
 <%= form_with(url: procesar_fila_trabajador_path, method: :post,

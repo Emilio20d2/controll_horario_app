@@ -28,7 +28,8 @@ class Trabajador < ApplicationRecord
     semanas_desde_referencia = ((fecha - asignacion.plantilla_horario.fecha_referencia).to_i / 7)
     numero_turno = (semanas_desde_referencia % 4) + 1
     dia_semana_key = fecha.strftime('%A').downcase.to_sym
-    BigDecimal(asignacion.plantilla_horario.horario.dig("turno#{numero_turno}", dia_semana_key).to_s || "0.0")
+    valor_horario = asignacion.plantilla_horario.horario.dig("turno#{numero_turno}", dia_semana_key)
+    BigDecimal((valor_horario.presence || "0.0").to_s)
   end
 
   # --- CÁLCULO DE JORNADA ANUAL (EN HORAS DECIMALES) ---

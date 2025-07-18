@@ -110,3 +110,9 @@ form label {
   justify-content: center;
   align-items: center;
 }
+
+/* Campos solo lectura en gris claro */
+.readonly-field[readonly] {
+  background-color: #e9ecef !important;
+  color: #000;
+}

@@ -10,52 +10,159 @@
     </div>
   <% end %>
 
-  <div class="card">
-    <div class="card-header">
-      <h5>Datos Personales</h5>
+  <% horario_vigente = trabajador.asignacion_turnos.includes(:plantilla_horario).order(fecha_inicio: :desc).first&.plantilla_horario&.horario || {} %>
+  <% saldo = trabajador.bolsa_horas_saldo || BolsaHorasSaldo.new %>
+  <% inicial_horas = trabajador.movimiento_bolsas.tipo_saldo_inicial.categoria_horas.sum(:cantidad_horas) rescue 0 %>
+  <% inicial_festivos = trabajador.movimiento_bolsas.tipo_saldo_inicial.categoria_festivos.sum(:cantidad_horas) rescue 0 %>
+  <% inicial_libranza = trabajador.movimiento_bolsas.tipo_saldo_inicial.categoria_libranza.sum(:cantidad_horas) rescue 0 %>
+  <% calculo_actual = trabajador.calculo_jornada_anual(Date.today.year) %>
+
+  <div class="card mb-4">
+    <div class="card-header"><h5>Datos Personales</h5></div>
+    <div class="card-body">
+      <div class="mb-3">
+        <%= form.label :nombre, "Nombre", class: "form-label" %>
+        <%= form.text_field :nombre, class: "form-control", required: true %>
+      </div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <%= form.label :fecha_alta, "Fecha de alta", class: "form-label" %>
+          <%= form.date_field :fecha_alta, class: "form-control", required: true %>
+        </div>
+        <div class="col-md-6 mb-3">
+          <%= form.label :fecha_baja, "Fecha de baja", class: "form-label" %>
+          <%= form.date_field :fecha_baja, class: "form-control" %>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header"><h5>Tipo de Contrato</h5></div>
+    <div class="card-body">
+      <div class="mb-3">
+        <%= form.collection_select :tipo_contrato_id, TipoContrato.order(:nombre), :id, :nombre, { prompt: "Seleccionar contrato..." }, { class: "form-select", required: true } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header"><h5>Jornada Semanal y su Historial</h5></div>
+    <div class="card-body">
+      <div class="mb-3">
+        <%= form.label :jornada_semanal_actual, "Jornada semanal actual", class: "form-label" %>
+        <%= form.number_field :jornada_semanal_actual, step: 0.25, min: 0, class: "form-control" %>
+      </div>
+      <h6>Historial de jornadas</h6>
+      <table class="table table-sm table-bordered">
+        <thead class="table-light">
+          <tr><th>Desde</th><th>Horas/Semana</th></tr>
+        </thead>
+        <tbody>
+          <% trabajador.historial_contratos.order(fecha_inicio_vigencia: :desc).each do |hc| %>
+            <tr>
+              <td><%= hc.fecha_inicio_vigencia %></td>
+              <td><%= number_with_precision(hc.horas_semanales_contratadas, precision: 2) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      <%= link_to "Añadir registro", new_admin_trabajador_historial_contrato_path(trabajador), class: "btn btn-outline-primary btn-sm" %>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header"><h5>Calendario Laboral Vigente</h5></div>
+    <div class="card-body">
+      <%= render 'parrilla_horario', horario: horario_vigente %>
+      <%= link_to "Cambiar Calendario", new_admin_trabajador_asignacion_turno_path(trabajador), class: "btn btn-outline-secondary btn-sm mt-2" %>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header"><h5>Bolsas de Horas Acumuladas</h5></div>
     <div class="card-body">
       <div class="row">
-        <div class="col-md-12 mb-3">
-          <%= form.label :nombre, "Nombre Completo", class: "form-label" %>
-          <%= form.text_field :nombre, class: "form-control", required: true %>
+        <div class="col-md-4 mb-3">
+          <%= label_tag :bolsa_horas, "Bolsa ordinaria" %>
+          <%= number_field_tag :bolsa_horas, saldo.saldo_bolsa_horas, class: "form-control readonly-field", readonly: true %>
+        </div>
+        <div class="col-md-4 mb-3">
+          <%= label_tag :bolsa_festivos, "Bolsa festivo trabajado" %>
+          <%= number_field_tag :bolsa_festivos, saldo.saldo_bolsa_festivos, class: "form-control readonly-field", readonly: true %>
+        </div>
+        <div class="col-md-4 mb-3">
+          <%= label_tag :bolsa_libranza, "Bolsa libranza" %>
+          <%= number_field_tag :bolsa_libranza, saldo.saldo_bolsa_libranza, class: "form-control readonly-field", readonly: true %>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="card mt-4">
-    <div class="card-header">
-      <h5>Datos del Contrato</h5>
-    </div>
+  <div class="card mb-4">
+    <div class="card-header"><h5>Bolsas Iniciales</h5></div>
     <div class="card-body">
-      <div class="row align-items-end">
-        <div class="col-md-6 mb-3">
-          <%= form.label :tipo_contrato_id, "Tipo de Contrato", class: "form-label" %>
-          <%= form.collection_select :tipo_contrato_id, TipoContrato.order(:nombre), :id, :nombre, { prompt: "Seleccionar contrato..." }, { class: "form-select", required: true } %>
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <%= label_tag :inicial_horas, "Inicial ordinaria" %>
+          <%= number_field_tag :inicial_horas, inicial_horas, class: "form-control readonly-field", readonly: true %>
         </div>
-        <div class="col-md-6 mb-3">
-          <%= form.label :jornada_semanal_actual, "Jornada Semanal (horas)", class: "form-label" %>
-          <%= form.number_field :jornada_semanal_actual, class: "form-control", step: "any" %>
+        <div class="col-md-4 mb-3">
+          <%= label_tag :inicial_festivos, "Inicial festivo" %>
+          <%= number_field_tag :inicial_festivos, inicial_festivos, class: "form-control readonly-field", readonly: true %>
+        </div>
+        <div class="col-md-4 mb-3">
+          <%= label_tag :inicial_libranza, "Inicial libranza" %>
+          <%= number_field_tag :inicial_libranza, inicial_libranza, class: "form-control readonly-field", readonly: true %>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="mt-4 d-flex justify-content-between align-items-center">
+  <div class="card mb-4">
+    <div class="card-header"><h5>Cálculo de Jornada Anual</h5></div>
+    <div class="card-body">
+      <div class="mb-3 p-2 bg-light rounded">
+        <strong>Año actual (<%= Date.today.year %>):</strong>
+        <% if calculo_actual && !calculo_actual[:error] %>
+          <div>Teóricas: <%= number_with_precision(calculo_actual[:horas_teoricas], precision: 2) %> h</div>
+          <div>Reales: <%= number_with_precision(calculo_actual[:horas_reales], precision: 2) %> h</div>
+          <% bal = calculo_actual[:balance] %>
+          <div>Balance: <span class="<%= bal >= 0 ? 'text-success' : 'text-danger' %>"><%= number_with_precision(bal, precision: 2) %> h</span></div>
+        <% else %>
+          <div><%= calculo_actual[:error] || 'Sin datos para el cálculo.' %></div>
+        <% end %>
+      </div>
+      <h6>Histórico Anual</h6>
+      <table class="table table-sm table-striped">
+        <thead>
+          <tr><th>Año</th><th>Jornada teórica</th><th>Horas trabajadas</th><th>Diferencia</th></tr>
+        </thead>
+        <tbody>
+          <% trabajador.historial_jornada_anuales.order(anio: :desc).each do |registro| %>
+            <tr>
+              <td><%= registro.anio %></td>
+              <td><%= number_with_precision(registro.jornada_anual_ajustada, precision: 2) %></td>
+              <td><%= number_with_precision(registro.horas_anuales_realizadas, precision: 2) %></td>
+              <% bal = registro.balance_final %>
+              <td><span class="<%= bal >= 0 ? 'text-success' : 'text-danger' %>"><%= number_with_precision(bal, precision: 2) %></span></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center">
     <div>
-      <%= form.submit "Guardar Trabajador", class: "btn btn-primary" %>
+      <%= form.submit "Guardar", class: "btn btn-primary" %>
       <% if trabajador.persisted? %>
         <%= link_to "Asignar Horario", new_admin_trabajador_asignacion_turno_path(trabajador), class: "btn btn-info ms-2" %>
         <%= link_to "Ver Historial", admin_trabajador_movimientos_path(trabajador), class: "btn btn-secondary ms-2" %>
       <% end %>
     </div>
-
     <% if trabajador.persisted? %>
-      <button type="button" class="btn btn-danger"
-              data-bs-toggle="modal" data-bs-target="#passwordVerificationModal"
-              data-action="click->password-verification#setDeleteUrl"
-              data-password-verification-delete-url-value="<%= admin_trabajador_path(trabajador) %>">
+      <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#passwordVerificationModal" data-action="click->password-verification#setDeleteUrl" data-password-verification-delete-url-value="<%= admin_trabajador_path(trabajador) %>">
         Eliminar
       </button>
     <% end %>

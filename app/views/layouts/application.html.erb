@@ -10,7 +10,10 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <%= yield %>
+  <body class="with-fixed-header">
+    <%= render 'layouts/header' %>
+    <main>
+      <%= yield %>
+    </main>
   </body>
 </html>

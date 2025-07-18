@@ -1,0 +1,12 @@
+<nav class="navbar navbar-dark fixed-header">
+  <div class="container-fluid d-flex justify-content-between align-items-center">
+    <span class="navbar-brand mb-0 h1 app-title">Control Horario</span>
+    <div class="header-actions d-flex align-items-center">
+      <% if logged_in? %>
+        <span class="me-3">Usuario: <strong><%= current_user.email %></strong></span>
+        <%= link_to 'Volver al Menú', root_path, class: 'btn btn-light me-2' %>
+        <%= link_to 'Cerrar Sesión', logout_path, data: { turbo_method: :delete }, class: 'btn btn-outline-light' %>
+      <% end %>
+    </div>
+  </div>
+</nav>

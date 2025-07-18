@@ -111,6 +111,21 @@ form label {
   align-items: center;
 }
 
+/* Cabecera fija para la selección de semanas */
+.sticky-week-header {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid #dee2e6;
+  padding: 0.5rem 1rem;
+}
+
+/* Margen para cada ficha semanal */
+.mini-table-container {
+  margin: 0 0 1.5rem 0;
+}
+
 /* Campos solo lectura en gris claro */
 .readonly-field[readonly] {
   background-color: #e9ecef !important;

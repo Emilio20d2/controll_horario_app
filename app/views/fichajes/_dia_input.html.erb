@@ -2,7 +2,7 @@
 <%# Variables locales esperadas: fecha, trabajador, entrada_dia, horas_teo, es_festivo_apertura, tipos_ausencia_options %>
 
 <div class="mb-2">
-  <label class="form-label">Horas teóricas:</label>
+  <label class="form-label">H.Trab:</label>
   <input type="number" name="dias[<%= fecha %>][horas_trabajadas]" value="<%= entrada_dia&.horas_trabajadas %>" placeholder="<%= '%.2f' % horas_teo %>" class="form-control form-control-sm" step="0.25" min="0" max="24" data-action="change->semanal#recalcularFila">
 </div>
 
@@ -33,5 +33,5 @@
 
 <div class="mt-2">
   <label class="form-label">Motivo:</label>
-  <input type="text" name="dias[<%= fecha %>][motivo]" class="form-control form-control-sm" value="<%= entrada_dia&.motivo %>" maxlength="30" data-action="change->semanal#recalcularFila">
+  <textarea name="dias[<%= fecha %>][motivo]" class="form-control form-control-sm" rows="1"><%= entrada_dia&.motivo %></textarea>
 </div>

@@ -1,79 +1,123 @@
 <%# app/views/fichajes/semanal.html.erb %>
 <% content_for :title, "Confirmación Semanal" %>
 
-<div class="container content-box"
-     data-controller="semanal"
-     data-semanal-year-value="<%= @anio_seleccionado %>"
-     data-semanal-week-num-value="<%= @semana_seleccionada %>">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmación Semanal de Jornada</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      /* --- Estilo Base y Fondo de Pantalla --- */
+      body {
+        background-image: url('<%= asset_path("FondoPantalla.jpg") %>');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        color: #212529;
+        background-color: #f0f2f5; /* Color de respaldo */
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.6); /* Capa blanca semitransparente */
+        z-index: -1;
+      }
+      .container { max-width: 98%; margin: 15px auto; background-color: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 0.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+      .page-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dee2e6; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+      .page-header h1 { color: #869495; margin:0; font-size: 1.6em; }
+      .nav-link-admin-button { display: inline-block; padding: 9px 18px; background-color: #6c757d; color: white !important; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 0.9em; }
+      .footer-nav { margin-top: 30px; text-align: center; padding-top: 20px; border-top: 1px solid #eee;}
+      /* --- Estilos de la Tabla --- */
+      .schedule-table { width: 100%; border-collapse: collapse; margin-top: 20px; table-layout: fixed; font-size: 0.85em;}
+      .schedule-table th, .schedule-table td { border: 1px solid #dee2e6; padding: 8px; text-align: center; vertical-align: top;}
+      .schedule-table thead th { background-color: #869495; color: white; font-weight: 600; white-space: nowrap; }
+      .trabajador-row:focus-within, .trabajador-row.fila-modificada { background-color: #fff9e6; }
+      .empleado-cell { text-align: left; font-weight: 600; width: 250px; }
+      .acciones-cell { width: 150px; vertical-align: middle; }
+      .day-cell { min-width: 140px; } 
+      .day-cell label { font-size: 0.8em; display:block; margin-bottom: 3px; color: #495057; text-align: left; font-weight:500;}
+      .day-cell input, .day-cell select { width: 100%; padding: 6px; font-size:0.9em; margin-bottom: 5px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box;}
+      .preview-cell { text-align: left; font-size: 0.85em; padding-top: 10px; }
+      .preview-cell ul { list-style: none; padding: 0; margin: 0; }
+      .preview-cell li { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #f0f0f0; }
+      .preview-cell strong { font-family: monospace; font-size: 1.1em; padding: 2px 4px; border-radius: 3px; background-color: #e9ecef; }
+    </style>
+</head>
+<body>
+    <div class="container content-box"
+         data-controller="semanal"
+         data-semanal-year-value="<%= @anio_seleccionado %>"
+         data-semanal-week-num-value="<%= @semana_seleccionada %>"
+    >
+        <div class="page-header">
+            <h1>Confirmación Semanal</h1>
+            <%= link_to "« Volver al Menú", '#', class: "nav-link-admin-button" %>
+        </div>
 
-  <div class="sticky-week-header d-flex justify-content-between align-items-center">
-    <div>
-      <%= link_to '← Semana anterior', fichajes_semanal_path(@params_semana_anterior), class: 'btn btn-outline-primary btn-sm me-2' %>
-      <strong>Del <%= l(@fecha_lunes, format: :short) %> al <%= l(@fecha_lunes + 6.days, format: :short) %></strong>
-      <%= link_to 'Semana siguiente →', fichajes_semanal_path(@params_semana_siguiente), class: 'btn btn-outline-primary btn-sm ms-2' %>
+        <h2 class="page-subtitle">Semana del <%= l(@fecha_lunes, format: :short) %> al <%= l(@fecha_lunes + 6.days, format: :short) %></h2>
+
+        <form>
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th>Empleado</th>
+                        <% @fechas_semana.each do |fecha| %>
+                            <th class="text-center">
+                                <%= l(fecha, format: '%A') %><br>
+                                <small><%= l(fecha, format: '%d/%m') %></small>
+                            </th>
+                        <% end %>
+                        <th>Total Comp.</th>
+                        <th>B. Horas</th>
+                        <th>B. Festivos</th>
+                        <th>B. Libranza</th>
+                        <th class="acciones-col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% @trabajadores.each do |trabajador| %>
+                        <tr class="trabajador-row" 
+                            id="fila_trabajador_<%= trabajador.id %>">
+                            
+                            <td class="empleado-cell">
+                                <strong><%= trabajador.nombre %></strong><br>
+                                <small class="text-muted"><%= trabajador.tipo_contrato.nombre %></small><br>
+                                <small>Jornada: <%= number_with_precision(trabajador.jornada_semanal_actual, precision: 2) %>h</small>
+                            </td>
+                            
+                            <% @fechas_semana.each do |fecha| %>
+                                <% horas_teo = @horas_teoricas_map.dig(trabajador.id, fecha) || 0 %>
+                                <% entrada_dia = @entradas_diarias_map.dig(trabajador.id, fecha) %>
+                                <% festivo_obj = @festivos_semana_map[fecha] %>
+                                <% es_festivo_apertura = festivo_obj&.apertura_autorizada %>
+                                
+                                <td class="day-cell <%= 'festivo' if festivo_obj %>">
+                                    
+                                    <%= render 'dia_input', trabajador: trabajador, fecha: fecha, entrada_dia: entrada_dia, horas_teo: horas_teo, es_festivo_apertura: es_festivo_apertura, tipos_ausencia_options: @tipos_ausencia_options %>
+                                </td>
+                            <% end %>
+
+                            <td><strong data-previsualizacion-target="totalComputadas">...</strong></td>
+                            <td><strong data-previsualizacion-target="impactoOrdinaria">...</strong></td>
+                            <td><strong data-previsualizacion-target="impactoFestivos">...</strong></td>
+                            <td><strong data-previsualizacion-target="impactoLibranza">...</strong></td>
+
+                            <td class="acciones-cell">
+                                <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
+                            </td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+        </form>
+        <div class="footer-nav">
+             <a href="#" class="nav-link-admin-button">« Volver al Menú</a>
+        </div>
     </div>
-    <%= link_to 'Volver al menú principal', root_path, class: 'btn btn-secondary btn-sm' %>
-  </div>
-
-  <% @trabajadores.each do |trabajador| %>
-    <%= form_with(url: procesar_fila_trabajador_path, method: :post,
-                  class: 'mini-table-container',
-                  data: {
-                    controller: 'previsualizacion',
-                    action: 'change->previsualizacion#recalcular',
-                    previsualizacion_jornada_semanal_value: trabajador.jornada_semanal_actual,
-                    previsualizacion_dias_laborables_value: trabajador.contrato_vigente_en(@fecha_lunes)&.dias_laborables_semana_contratados || 5,
-                    previsualizacion_acumula_festivos_value: trabajador.tipo_contrato.acumula_festivo_trabajado_en_bolsa,
-                    previsualizacion_acumula_libranza_value: trabajador.tipo_contrato.acumula_festivo_en_libranza
-                  }) do |form| %>
-      <table class="schedule-table table-bordered mb-0">
-        <thead>
-          <tr>
-            <th>Empleado</th>
-            <% @fechas_semana.each do |fecha| %>
-              <th class="text-center">
-                <%= l(fecha, format: '%A') %><br>
-                <small><%= l(fecha, format: '%d/%m') %></small>
-              </th>
-            <% end %>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="trabajador-row" id="fila_trabajador_<%= trabajador.id %>">
-            <td class="empleado-cell">
-              <strong><%= trabajador.nombre %></strong><br>
-              <small>Jornada: <%= number_with_precision(trabajador.jornada_semanal_actual, precision: 0) %>h/semana</small><br>
-              <small><%= trabajador.tipo_contrato.nombre %></small>
-              <%= form.hidden_field :trabajador_id, value: trabajador.id %>
-              <%= form.hidden_field :anio, value: @anio_seleccionado %>
-              <%= form.hidden_field :semana, value: @semana_seleccionada %>
-            </td>
-            <% @fechas_semana.each do |fecha| %>
-              <td class="day-cell">
-                <%= render 'celda_dia', trabajador: trabajador, fecha: fecha, form: form %>
-              </td>
-            <% end %>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="<%= @fechas_semana.size + 1 %>">
-              <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex gap-3">
-                  <span>Total: <strong data-previsualizacion-target="totalComputadas">0h</strong></span>
-                  <span>B.Horas: <strong data-previsualizacion-target="impactoOrdinaria">0h</strong></span>
-                  <span>B.Festivo: <strong data-previsualizacion-target="impactoFestivos">0h</strong></span>
-                  <span>B.Libranza: <strong data-previsualizacion-target="impactoLibranza">0h</strong></span>
-                </div>
-                <% procesado = @semanas_procesadas.include?(trabajador.id) %>
-                <% texto_boton = procesado ? 'Confirmado ✓' : 'Confirmar semana' %>
-                <% clase_boton = procesado ? 'btn btn-success btn-sm' : 'btn btn-primary btn-sm' %>
-                <%= form.button texto_boton, class: clase_boton %>
-              </div>
-            </td>
-          </tr>
-        </tfoot>
-      </table>
-    <% end %>
-  <% end %>
-</div>
+</body>
+</html>

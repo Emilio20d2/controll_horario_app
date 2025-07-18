@@ -48,7 +48,8 @@
       .preview-cell strong { font-family: monospace; font-size: 1.1em; padding: 2px 4px; border-radius: 3px; background-color: #e9ecef; }
     </style>
 </head>
-<body>
+<body class="with-fixed-header">
+    <%= render 'layouts/header' %>
     <div class="container content-box"
          data-controller="semanal"
          data-semanal-year-value="<%= @anio_seleccionado %>"

@@ -82,7 +82,7 @@ export default class extends Controller {
 
       // Leer los valores, convirtiendo a número y manejando valores por defecto.
       const horasTrabajadas = parseFloat(horasTrabajadasInput.value) || parseFloat(horasTrabajadasInput.placeholder) || 0;
-      const tipoAusenciaId = tipoAusenciaSelect.value ? parseInt(tipoAusenciaSelect.value) : null;
+      const tipoAusenciaId = tipoAusenciaSelect.value ? parseInt(tipoAusenciaSelect.value, 10) : null;
       const horasAusencia = parseFloat(horasAusenciaInput.value) || 0;
       const hCompPagadas = parseFloat(hCompPagadasInput.value) || 0;
       const pagoDoble = pagoDobleCheckbox ? pagoDobleCheckbox.checked : false;

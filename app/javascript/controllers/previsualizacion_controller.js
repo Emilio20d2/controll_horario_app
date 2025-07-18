@@ -1,9 +1,15 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = [ "totalComputadas", "impactoOrdinaria", "impactoFestivos", "impactoLibranza" ]
+  static targets = [
+    "totalComputadas",
+    "impactoOrdinaria",
+    "impactoFestivos",
+    "impactoLibranza"
+  ]
   static values = {
     jornadaSemanal: Number,
+    diasLaborables: Number,
     acumulaFestivos: Boolean,
     acumulaLibranza: Boolean
   }
@@ -83,7 +89,8 @@ export default class extends Controller {
       else if (ausenciaAfectaBolsa === 'festivo_libranza') { impactoBolsaLibranza -= horasAusencia }
       
       if (esFestivo && !esApertura && teoricasDia === 0 && this.acumulaLibranzaValue) {
-        impactoBolsaLibranza += (this.jornadaSemanalValue / 5.0)
+        const divisor = this.diasLaborablesValue || 5
+        impactoBolsaLibranza += (this.jornadaSemanalValue / divisor)
       }
 
       impactoBolsaOrdinaria += (horasParaBalance - teoricasDia)

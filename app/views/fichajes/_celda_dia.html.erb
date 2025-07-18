@@ -26,8 +26,8 @@
 <div class="p-2" data-controller="day-cell">
   <%# 1. Horas Teóricas %>
   <div class="mb-2">
-    <%= form.label "dias[#{fecha}][horas_trabajadas]", "H. Trabajadas", class: "form-label small mb-0" %>
-    <%= form.number_field "dias[#{fecha}][horas_trabajadas]", step: 0.25, class: "form-control form-control-sm", value: (entrada_diaria.horas_trabajadas || '%.2f' % horas_teo_dia) %>
+    <%= form.label "dias[#{fecha}][horas_trabajadas]", "Horas teóricas", class: "form-label small mb-0" %>
+    <%= form.number_field "dias[#{fecha}][horas_trabajadas]", step: 0.25, min: 0, max: 24, class: "form-control form-control-sm", value: (entrada_diaria.horas_trabajadas || '%.2f' % horas_teo_dia) %>
   </div>
 
   <%# 2. Selector de Ausencia %>
@@ -43,13 +43,13 @@
   <%# 3. Horas de Ausencia (condicional) %>
   <div class="mb-2 <%= 'd-none' unless mostrar_horas_ausencia %>" data-day-cell-target="horasAusenciaWrapper">
     <%= form.label "dias[#{fecha}][horas_ausencia]", "H. Ausencia", class: "form-label small mb-0" %>
-    <%= form.number_field "dias[#{fecha}][horas_ausencia]", step: 0.25, class: "form-control form-control-sm", value: entrada_diaria.horas_ausencia, placeholder: "0.00" %>
+    <%= form.number_field "dias[#{fecha}][horas_ausencia]", step: 0.25, min: 0, max: 24, class: "form-control form-control-sm", value: entrada_diaria.horas_ausencia, placeholder: "0.00" %>
   </div>
 
   <%# 4. Horas Complementarias %>
   <div class="mb-2">
     <%= form.label "dias[#{fecha}][horas_comp_pagadas]", "H. Comp. Pagadas", class: "form-label small mb-0" %>
-    <%= form.number_field "dias[#{fecha}][horas_comp_pagadas]", step: 0.25, class: "form-control form-control-sm", value: (entrada_diaria.horas_comp_pagadas || '0.00'), placeholder: "0.00" %>
+    <%= form.number_field "dias[#{fecha}][horas_comp_pagadas]", step: 0.25, min: 0, max: 24, class: "form-control form-control-sm", value: (entrada_diaria.horas_comp_pagadas || '0.00'), placeholder: "0.00" %>
   </div>
 
   <%# 5. Checkbox "Pago Doble" (condicional) %>
@@ -60,8 +60,8 @@
 
   <%# 6. Comentario Justificativo %>
   <div>
-    <%= form.label "dias[#{fecha}][comentario]", "Comentario", class: "form-label small mb-0" %>
-    <%= form.text_field "dias[#{fecha}][comentario]", class: "form-control form-control-sm", value: entrada_diaria.comentario %>
+    <%= form.label "dias[#{fecha}][comentario]", "Motivo", class: "form-label small mb-0" %>
+    <%= form.text_field "dias[#{fecha}][comentario]", class: "form-control form-control-sm", value: entrada_diaria.comentario, maxlength: 30 %>
   </div>
 </div>
 # db/migrate/YYYYMMDDHHMMSS_add_fields_to_entrada_diarias_for_weekly_form.rb

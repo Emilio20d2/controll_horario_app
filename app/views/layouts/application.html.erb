@@ -8,9 +8,39 @@
 
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+    <style>
+      .top-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3rem;
+        background-color: #869495;
+        color: #222;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 1rem;
+        z-index: 1000;
+      }
+      .content-offset {
+        padding-top: 3.5rem;
+      }
+    </style>
   </head>
 
   <body>
-    <%= yield %>
+    <header class="top-bar">
+      <span class="app-name">Control Horario</span>
+      <% if logged_in? %>
+        <div class="d-flex align-items-center">
+          <span class="me-3"><%= current_user.email %></span>
+          <%= link_to 'Cerrar Sesión', logout_path, data: { turbo_method: :delete }, class: 'btn btn-secondary btn-sm' %>
+        </div>
+      <% end %>
+    </header>
+    <div class="content-offset">
+      <%= yield %>
+    </div>
   </body>
 </html>

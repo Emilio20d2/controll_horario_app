@@ -89,46 +89,31 @@
       <% end %>
     </div>
 
-    <%# Sección para el historial de balances guardados %>
-    <h6>Historial de Balances Guardados</h6>
-    <% if @historial_jornada_anual_registros.any? %>
-      <table class="table table-sm table-striped">
-        <thead>
+    <%# Tabla histórica de jornada anual %>
+    <h6>Histórico anual</h6>
+    <table class="table table-sm table-striped">
+      <thead>
+        <tr>
+          <th>Año</th>
+          <th>Jornada anual teórica</th>
+          <th>Horas trabajadas reales</th>
+          <th>Diferencia (haber/deber)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @resumen_jornadas.each do |r| %>
           <tr>
-            <th>Año</th><th>Jornada Ajustada</th><th>Horas Realizadas</th><th>Balance Final</th>
+            <td><%= r[:anio] %></td>
+            <td><%= number_with_precision(r[:jornada_anual_ajustada], precision: 2) %> h</td>
+            <td><%= number_with_precision(r[:horas_anuales_realizadas], precision: 2) %> h</td>
+            <td>
+              <span class="<%= r[:balance_final] >= 0 ? 'text-success' : 'text-danger' %> fw-bold">
+                <%= number_with_precision(r[:balance_final], precision: 2) %> h
+              </span>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          <% @historial_jornada_anual_registros.each do |registro| %>
-            <tr>
-              <td><%= registro.anio %></td>
-              <td><%= number_with_precision(registro.jornada_anual_ajustada / 60.0, precision: 2) %> h</td>
-              <td><%= number_with_precision(registro.horas_anuales_realizadas / 60.0, precision: 2) %> h</td>
-              <td>
-                <% balance = registro.balance_final / 60.0 %>
-                <span class="<%= balance >= 0 ? 'text-success' : 'text-danger' %> fw-bold"><%= number_with_precision(balance, precision: 2) %> h</span>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <p>No hay balances anuales guardados para este trabajador.</p>
-    <% end %>
-
-    <%# Formulario para guardar el balance de un año específico %>
-    <hr>
-    <h6>Guardar Balance Anual</h6>
-    <%= form_with(url: admin_trabajador_historial_jornada_anuales_path(@trabajador), method: :post, class: "row g-3 align-items-center") do |form| %>
-      <div class="col-auto">
-        <%= form.label :anio, "Año a calcular y guardar:", class: "col-form-label" %>
-      </div>
-      <div class="col-auto">
-        <%= form.number_field :anio, class: "form-control", value: Date.today.year - 1, required: true %>
-      </div>
-      <div class="col-auto">
-        <%= form.submit "Guardar Balance", class: "btn btn-success" %>
-      </div>
-    <% end %>
+        <% end %>
+      </tbody>
+    </table>
   </div>
 </div>

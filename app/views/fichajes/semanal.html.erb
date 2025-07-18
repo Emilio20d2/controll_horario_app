@@ -119,6 +119,27 @@
         <div class="footer-nav">
              <a href="#" class="nav-link-admin-button">« Volver al Menú</a>
         </div>
+
     </div>
-</body>
-</html>
+    <%= link_to "Volver al menú", root_path, class: "btn btn-outline-secondary btn-sm" %>
+  </div>
+
+  <table class="schedule-table mt-3">
+    <thead>
+      <tr>
+        <th>Empleado</th>
+        <% @fechas_semana.each do |fecha| %>
+          <th class="text-center">
+            <%= l(fecha, format: '%A') %><br>
+            <small><%= l(fecha, format: '%d/%m') %></small>
+          </th>
+        <% end %>
+        <th>Resumen</th>
+        <th class="acciones-col">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'fila_trabajador', collection: @trabajadores, as: :trabajador %>
+    </tbody>
+  </table>
+</div>

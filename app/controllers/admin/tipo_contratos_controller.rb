@@ -40,7 +40,7 @@ class Admin::TipoContratosController < ApplicationController
   end
 
   def tipo_contrato_params
-    params.require(:tipo_contrato).permit(:nombre, :afecta_bolsa_ordinaria,
+    params.require(:tipo_contrato).permit(:nombre, :afecta_bolsa_horas, # El nombre correcto es afecta_bolsa_horas
                                           :acumula_festivo_trabajado_en_bolsa,
                                           :acumula_festivo_en_libranza)
   end

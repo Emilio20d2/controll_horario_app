@@ -10,5 +10,8 @@ application.register("cell", CellController)
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
 
+import PasswordVerificationController from "./password_verification_controller.js"
+application.register("password-verification", PasswordVerificationController)
+
 import PrevisualizacionController from "./previsualizacion_controller"
 application.register("previsualizacion", PrevisualizacionController)

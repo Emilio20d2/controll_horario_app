@@ -1,13 +1,7 @@
-<%#
-  Formulario para crear o editar un Tipo de Ausencia.
-  Contiene todos los campos definidos en la guía de estructura.
-%>
 <%= form_with(model: [:admin, tipo_ausencia], local: true, html: { class: "needs-validation", novalidate: true }) do |form| %>
   <% if tipo_ausencia.errors.any? %>
-    <div class="alert alert-danger" role="alert">
-      <h4 class="alert-heading">Se encontraron <%= pluralize(tipo_ausencia.errors.count, "error") %></h4>
-      <p>Por favor, corrige los siguientes problemas:</p>
-      <hr>
+    <div class="alert alert-danger">
+      <h5><%= pluralize(tipo_ausencia.errors.count, "error") %> impidieron guardar este tipo de ausencia:</h5>
       <ul>
         <% tipo_ausencia.errors.full_messages.each do |message| %>
           <li><%= message %></li>
@@ -16,75 +10,72 @@
     </div>
   <% end %>
 
-  <div class="card">
-    <div class="card-body">
-      <%# 1. Nombre %>
-      <div class="mb-4">
-        <%= form.label :nombre, class: "form-label fw-bold" %>
-        <%= form.text_field :nombre, class: "form-control", required: true %>
-        <div class="form-text">Nombre único y descriptivo que aparecerá en los desplegables.</div>
-      </div>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <%= form.label :nombre, class: "form-label" %>
+      <%= form.text_field :nombre, class: "form-control", required: true %>
+    </div>
 
-      <%# Abreviatura %>
-      <div class="mb-4">
-        <%= form.label :abreviatura, class: "form-label fw-bold" %>
-        <%= form.text_field :abreviatura, class: "form-control", required: true, maxlength: 10 %>
-        <div class="form-text">Abreviatura de máx. 10 caracteres que se mostrará en el selector principal (ej. "VAC").</div>
-      </div>
+    <div class="col-md-6 mb-3">
+      <%= form.label :abreviatura, "Abreviatura (máx 5 caracteres)", class: "form-label" %>
+      <%= form.text_field :abreviatura, class: "form-control", required: true, maxlength: 5 %>
+    </div>
+  </div>
 
-      <%# 2. Modalidad %>
-      <div class="mb-4">
-        <p class="form-label fw-bold">Modalidad</p>
-        <div class="form-check">
-          <%= form.radio_button :es_fraccionable, false, class: 'form-check-input', id: 'modalidad_dia_completo' %>
-          <%= form.label :es_fraccionable_false, "Día Completo", class: 'form-check-label', for: 'modalidad_dia_completo' %>
-          <div class="form-text">La ausencia cubre todas las horas teóricas del día. Ideal para vacaciones, bajas, etc.</div>
-        </div>
-        <div class="form-check mt-2">
-          <%= form.radio_button :es_fraccionable, true, class: 'form-check-input', id: 'modalidad_por_horas' %>
-          <%= form.label :es_fraccionable_true, "Por Horas", class: 'form-check-label', for: 'modalidad_por_horas' %>
-          <div class="form-text">Requiere introducir manualmente el número de horas. Útil para permisos cortos, visitas médicas, etc.</div>
-        </div>
-      </div>
+  <div class="row">
+    <div class="col-md-4 mb-3 form-check form-switch">
+      <%= form.check_box :es_retribuida, class: "form-check-input", role: "switch" %>
+      <%= form.label :es_retribuida, "Es retribuida", class: "form-check-label" %>
+    </div>
 
-      <%# 3. ¿Es Retribuida? %>
-      <div class="mb-4 form-check form-switch">
-        <%= form.check_box :es_retribuida, class: 'form-check-input', role: 'switch' %>
-        <%= form.label :es_retribuida, '¿Es Retribuida?', class: 'form-check-label fw-bold' %>
-        <div class="form-text mt-1">Si está marcado, las horas de ausencia cuentan como trabajadas para la jornada anual.</div>
-      </div>
+    <div class="col-md-4 mb-3 form-check form-switch">
+      <%= form.check_box :genera_deuda_en_bolsa, class: "form-check-input", role: "switch" %>
+      <%= form.label :genera_deuda_en_bolsa, "Genera deuda en bolsa", class: "form-check-label" %>
+    </div>
 
-      <%# Límite Anual de Horas %>
-      <div class="mb-4">
-        <%= form.label :limite_horas_anuales, "Límite Anual de Horas (opcional)", class: "form-label fw-bold" %>
-        <%= form.number_field :limite_horas_anuales, class: "form-control", step: 0.25, min: 0, placeholder: "Sin límite" %>
-        <div class="form-text">Si se establece un límite, las horas que lo superen dentro de un año natural generarán deuda en la bolsa ordinaria, incluso si la ausencia es retribuida.</div>
-      </div>
+    <div class="col-md-4 mb-3 form-check form-switch">
+      <%= form.check_box :es_fraccionable, class: "form-check-input", role: "switch" %>
+      <%= form.label :es_fraccionable, "Permitir por horas", class: "form-check-label" %>
+    </div>
+  </div>
 
-      <%# 4. Bolsa de Horas Afectada %>
-      <div class="mb-4">
-        <%
-          opciones_bolsa = TipoAusencia.categoria_bolsa_afectadas.keys.map do |key|
-            texto = key.to_s.gsub('_', ' ').capitalize
-            [texto, key]
-          end
-        %>
-        <%= form.label :categoria_bolsa_afectada, "Bolsa de Horas Afectada", class: "form-label fw-bold" %>
-        <%= form.select :categoria_bolsa_afectada, opciones_bolsa, {}, class: "form-select" %>
-        <div class="form-text">Especifica de qué bolsa se deben restar las horas al registrar esta ausencia.</div>
-      </div>
+  <div class="row">
+    <div class="col-md-12 mb-3">
+      <%= form.label :categoria_bolsa_afectada, "Bolsa de horas afectada (si descuenta)", class: "form-label" %>
+      <%= form.select :categoria_bolsa_afectada, options_for_select(TipoAusencia.categoria_bolsa_afectadas.keys.map { |k| [k.humanize, k] }, tipo_ausencia.categoria_bolsa_afectada), {}, { class: "form-select" } %>
+      <div class="form-text">Selecciona de qué bolsa se restarán las horas si la ausencia no es retribuida.</div>
+    </div>
+  </div>
 
-      <%# 5. ¿Genera un déficit en la bolsa? %>
-      <div class="mb-4 form-check form-switch">
-        <%= form.check_box :genera_deuda_en_bolsa, class: 'form-check-input', role: 'switch' %>
-        <%= form.label :genera_deuda_en_bolsa, '¿Genera un déficit en la bolsa?', class: 'form-check-label fw-bold' %>
-        <div class="form-text mt-1">Si está marcado, la ausencia genera un déficit en la bolsa ordinaria que el trabajador deberá recuperar (ej. Ausencia Injustificada).</div>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <%= form.label :limite_horas_anuales, "Límite de horas anuales (dejar en blanco si no hay)", class: "form-label" %>
+      <%= form.number_field :limite_horas_anuales, class: "form-control", step: "any" %>
+      <div class="form-text">Define un máximo de horas que se pueden usar de este tipo de ausencia al año.</div>
+    </div>
+
+    <div class="col-md-6 mb-3 d-flex align-items-center">
+      <div class="form-check form-switch">
+        <%= form.check_box :suspende_contrato, class: "form-check-input", role: "switch" %>
+        <%= form.label :suspende_contrato, "Suspende el contrato", class: "form-check-label fw-bold" %>
+        <div class="form-text">Si se marca, los días con esta ausencia no contarán para el cálculo de la jornada anual.</div>
       </div>
     </div>
   </div>
 
-  <div class="mt-4">
-    <%= form.submit "Guardar Tipo de Ausencia", class: 'btn btn-primary' %>
-    <%= link_to 'Cancelar', admin_tipo_ausencias_path, class: 'btn btn-secondary' %>
+  <hr>
+
+  <div class="d-flex justify-content-between align-items-center">
+    <%= form.submit "Guardar Tipo de Ausencia", class: "btn btn-primary" %>
+
+    <%# Solo mostramos el botón de eliminar si el registro ya existe %>
+    <% if tipo_ausencia.persisted? %>
+      <button type="button" class="btn btn-danger"
+              data-bs-toggle="modal" data-bs-target="#passwordVerificationModal"
+              data-action="click->password-verification#setDeleteUrl"
+              data-password-verification-delete-url-value="<%= admin_tipo_ausencia_path(tipo_ausencia) %>">
+        Eliminar
+      </button>
+    <% end %>
   </div>
 <% end %>

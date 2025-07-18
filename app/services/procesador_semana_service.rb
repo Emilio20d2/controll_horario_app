@@ -59,7 +59,7 @@ class ProcesadorSemanaService
     # BUCLE DE CÁLCULO DIARIO
     (@fecha_inicio_semana..@fecha_fin_semana).each do |fecha|
       datos_dia = @datos_dias[fecha.to_s] || {}
-      h_teo_dia = @trabajador.horas_teoricas_para(fecha)
+      h_teo_dia = BigDecimal(@trabajador.horas_teoricas_para(fecha).to_s)
       total_horas_teoricas += h_teo_dia
 
       # Lógica de Ausencias
@@ -154,9 +154,9 @@ class ProcesadorSemanaService
 
       saldo_obj = BolsaHorasSaldo.find_or_create_by!(trabajador: @trabajador)
       saldo_obj.update!(
-        horas: saldos_calculados[CAT_HORAS.to_s] || 0,
-        festivos: saldos_calculados[CAT_FESTIVOS.to_s] || 0,
-        libranza: saldos_calculados[CAT_LIBRANZA.to_s] || 0
+        saldo_bolsa_horas: saldos_calculados[CAT_HORAS.to_s] || 0,
+        saldo_bolsa_festivos: saldos_calculados[CAT_FESTIVOS.to_s] || 0,
+        saldo_bolsa_libranza: saldos_calculados[CAT_LIBRANZA.to_s] || 0
       )
 
       # Actualizar historial anual

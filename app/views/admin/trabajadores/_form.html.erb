@@ -1,92 +1,63 @@
-<%#
-  Formulario unificado para crear y editar trabajadores.
-  - Muestra campos adicionales (fecha implantación, saldos, horario) solo al crear.
-  - Usa la variable `trabajador` que le pasan las vistas `new.html.erb` y `edit.html.erb`.
-%>
-<%= form_with(model: [:admin, trabajador], local: true, html: { class: "needs-validation", novalidate: true }) do |form| %>
-  <% if form.object.errors.any? %>
+<%= form_with(model: [:admin, trabajador], local: true) do |form| %>
+  <% if trabajador.errors.any? %>
     <div class="alert alert-danger">
-      <h2><%= pluralize(form.object.errors.count, "error") %> impidió guardar al trabajador:</h2>
+      <h5><%= pluralize(trabajador.errors.count, "error") %> impidieron guardar este trabajador:</h5>
       <ul>
-        <% form.object.errors.full_messages.each do |message| %>
+        <% trabajador.errors.full_messages.each do |message| %>
           <li><%= message %></li>
         <% end %>
       </ul>
     </div>
   <% end %>
 
-  <%# --- SECCIÓN 1: DATOS BÁSICOS Y FECHA DE IMPLANTACIÓN --- %>
-  <div class="card mb-4">
+  <div class="card">
     <div class="card-header">
-      <h4>1. Datos Principales</h4>
+      <h5>Datos Personales</h5>
     </div>
     <div class="card-body">
       <div class="row">
-        <div class="col-md-6 mb-3">
-          <%= form.label :nombre %>
-          <%= form.text_field :nombre, class: 'form-control', required: true %>
+        <div class="col-md-12 mb-3">
+          <%= form.label :nombre, "Nombre Completo", class: "form-label" %>
+          <%= form.text_field :nombre, class: "form-control", required: true %>
         </div>
-        <div class="col-md-6 mb-3">
-          <%= form.label :tipo_contrato_id %>
-          <%= form.collection_select :tipo_contrato_id, @tipos_contrato, :id, :nombre, { prompt: 'Seleccionar tipo' }, class: 'form-select', required: true %>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <%= form.label :jornada_semanal_actual, 'Horas de contrato semanales' %>
-          <%= form.number_field :jornada_semanal_actual, class: 'form-control', step: 'any', min: 0, required: true %>
-        </div>
-        <%# Este campo solo aparece al CREAR un nuevo trabajador %>
-        <% if !form.object.persisted? %>
-          <div class="col-md-6 mb-3">
-            <%= form.label :fecha_implantacion, 'Fecha de Implantación (Inicio de todo)' %>
-            <%= form.date_field :fecha_implantacion, class: 'form-control', required: true, value: Date.today %>
-          </div>
-        <% end %>
       </div>
     </div>
   </div>
 
-  <%# --- SECCIONES ADICIONALES (Solo visibles al CREAR) --- %>
-  <% if !form.object.persisted? %>
-    <%# --- SECCIÓN 2: SALDOS INICIALES DE BOLSAS DE HORAS --- %>
-    <div class="card mb-4">
-      <div class="card-header">
-        <h4>2. Saldos Iniciales de Bolsas de Horas</h4>
-      </div>
-      <div class="card-body">
-        <p class="text-muted">Introduce los saldos iniciales con los que empieza el trabajador. Si no tiene, déjalos en 0.</p>
-        <div class="row">
-          <div class="col-md-4 mb-3">
-            <label for="saldos_horas" class="form-label">Saldo Bolsa de Horas</label>
-            <%= number_field_tag 'saldos[horas]', 0, class: 'form-control', step: 'any' %>
-          </div>
-          <div class="col-md-4 mb-3">
-            <label for="saldos_festivos" class="form-label">Saldo Bolsa de Festivos</label>
-            <%= number_field_tag 'saldos[festivos]', 0, class: 'form-control', step: 'any' %>
-          </div>
-          <div class="col-md-4 mb-3">
-            <label for="saldos_libranza" class="form-label">Saldo Bolsa de Libranza</label>
-            <%= number_field_tag 'saldos[libranza]', 0, class: 'form-control', step: 'any' %>
-          </div>
+  <div class="card mt-4">
+    <div class="card-header">
+      <h5>Datos del Contrato</h5>
+    </div>
+    <div class="card-body">
+      <div class="row align-items-end">
+        <div class="col-md-6 mb-3">
+          <%= form.label :tipo_contrato_id, "Tipo de Contrato", class: "form-label" %>
+          <%= form.collection_select :tipo_contrato_id, TipoContrato.order(:nombre), :id, :nombre, { prompt: "Seleccionar contrato..." }, { class: "form-select", required: true } %>
+        </div>
+        <div class="col-md-6 mb-3">
+          <%= form.label :jornada_semanal_actual, "Jornada Semanal (horas)", class: "form-label" %>
+          <%= form.number_field :jornada_semanal_actual, class: "form-control", step: "any" %>
         </div>
       </div>
     </div>
+  </div>
 
-    <%# --- SECCIÓN 3: HORARIO TEÓRICO SEMANAL (ROTATIVO) --- %>
-    <div class="card mb-4">
-      <div class="card-header">
-        <h4>3. Horario Teórico Semanal (Rotativo 4 Turnos)</h4>
-      </div>
-      <div class="card-body">
-        <p class="text-muted">Define las horas para cada día en el ciclo de rotación. La rotación comenzará en el "Turno 1" en la semana de la "Fecha de Implantación".</p>
-        <%= render 'form_horario', horario_actual: @horario_actual %>
-      </div>
+  <div class="mt-4 d-flex justify-content-between align-items-center">
+    <div>
+      <%= form.submit "Guardar Trabajador", class: "btn btn-primary" %>
+      <% if trabajador.persisted? %>
+        <%= link_to "Asignar Horario", new_admin_trabajador_asignacion_turno_path(trabajador), class: "btn btn-info ms-2" %>
+        <%= link_to "Ver Historial", admin_trabajador_movimientos_path(trabajador), class: "btn btn-secondary ms-2" %>
+      <% end %>
     </div>
-  <% end %>
 
-  <div class="d-flex justify-content-between mt-4">
-    <%= link_to 'Cancelar', admin_trabajadores_path, class: 'btn btn-secondary' %>
-    <%= form.submit class: 'btn btn-primary' %>
+    <% if trabajador.persisted? %>
+      <button type="button" class="btn btn-danger"
+              data-bs-toggle="modal" data-bs-target="#passwordVerificationModal"
+              data-action="click->password-verification#setDeleteUrl"
+              data-password-verification-delete-url-value="<%= admin_trabajador_path(trabajador) %>">
+        Eliminar
+      </button>
+    <% end %>
   </div>
 <% end %>

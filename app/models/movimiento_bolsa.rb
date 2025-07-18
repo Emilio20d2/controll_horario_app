@@ -20,7 +20,7 @@ class MovimientoBolsa < ApplicationRecord
   }, _prefix: :categoria
 
   validates :fecha_efectiva, presence: true
-  validates :cantidad_horas, presence: true, numericality: { only_integer: true }
+  validates :cantidad_horas, presence: true, numericality: true
   validates :tipo_movimiento, presence: true
   validates :categoria_bolsa_afectada, presence: true
   validates :concepto, presence: true

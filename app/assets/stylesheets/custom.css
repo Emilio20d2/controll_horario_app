@@ -22,7 +22,7 @@ body::before {
 
 /* --- Caja de Contenido Principal --- */
 .content-box {
-  background-color: rgba(255, 255, 255, 0.5); /* Fondo ligeramente transparente */
+  background-color: rgba(255, 255, 255, 0.7); /* Fondo ligeramente transparente */
   border-radius: 0.5rem;
   box-shadow: 0 4px 8px rgba(0,0,0,0.05);
   padding: 1.5rem;

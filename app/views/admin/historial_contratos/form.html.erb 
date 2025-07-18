@@ -34,4 +34,8 @@
     <%= f.submit "Guardar Nueva Jornada", class: "btn btn-primary" %>
     <%= link_to 'Cancelar', admin_trabajador_path(@trabajador), class: 'btn btn-secondary' %>
   </div>
+    <%# ... %>
+
+
+
 <% end %>

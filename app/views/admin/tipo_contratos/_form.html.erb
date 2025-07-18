@@ -1,37 +1,56 @@
-<%= form_with(model: [:admin, @tipo_contrato], local: true) do |form| %>
-  <% if @tipo_contrato.errors.any? %>
-    <div id="error_explanation" class="alert alert-danger">
-      <h2><%= t('activerecord.errors.template.header', model: @tipo_contrato.class.model_name.human, count: @tipo_contrato.errors.count) %></h2>
+<%= form_with(model: [:admin, tipo_contrato], local: true, html: { class: "needs-validation", novalidate: true }) do |form| %>
+  <% if tipo_contrato.errors.any? %>
+    <div class="alert alert-danger">
+      <h5><%= pluralize(tipo_contrato.errors.count, "error") %> impidieron guardar este tipo de contrato:</h5>
       <ul>
-        <% @tipo_contrato.errors.full_messages.each do |message| %>
+        <% tipo_contrato.errors.full_messages.each do |message| %>
           <li><%= message %></li>
         <% end %>
       </ul>
     </div>
   <% end %>
 
-  <div class="mb-3">
-    <%= form.label :nombre, class: 'form-label' %>
-    <%= form.text_field :nombre, class: 'form-control', required: true %>
+  <div class="row">
+    <div class="col-md-12 mb-3">
+      <%= form.label :nombre, class: "form-label" %>
+      <%= form.text_field :nombre, class: "form-control", required: true %>
+    </div>
   </div>
 
-  <div class="mb-3 form-check">
-    <%= form.check_box :afecta_bolsa_ordinaria, class: 'form-check-input' %>
-    <%= form.label :afecta_bolsa_ordinaria, 'Afecta a la bolsa de horas ordinaria (balance semanal)', class: 'form-check-label' %>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <%= form.label :horas_semanales_contratadas, class: "form-label" %>
+      <%= form.number_field :horas_semanales_contratadas, class: "form-control", required: true, step: "any" %>
+    </div>
+    <div class="col-md-6 mb-3">
+      <%= form.label :dias_laborables_semana_contratados, class: "form-label" %>
+      <%= form.number_field :dias_laborables_semana_contratados, class: "form-control", required: true, in: 1..7 %>
+    </div>
   </div>
 
-  <div class="mb-3 form-check">
-    <%= form.check_box :acumula_festivo_trabajado_en_bolsa, class: 'form-check-input' %>
-    <%= form.label :acumula_festivo_trabajado_en_bolsa, 'Acumula festivos trabajados en bolsa', class: 'form-check-label' %>
+  <div class="row">
+    <div class="col-md-6 mb-3 form-check">
+      <%= form.check_box :acumula_festivo_trabajado_en_bolsa, class: "form-check-input" %>
+      <%= form.label :acumula_festivo_trabajado_en_bolsa, "Acumula festivo trabajado en bolsa", class: "form-check-label" %>
+    </div>
+    <div class="col-md-6 mb-3 form-check">
+      <%= form.check_box :acumula_festivo_en_libranza, class: "form-check-input" %>
+      <%= form.label :acumula_festivo_en_libranza, "Acumula festivo en día de libranza", class: "form-check-label" %>
+    </div>
   </div>
 
-  <div class="mb-3 form-check">
-    <%= form.check_box :acumula_festivo_en_libranza, class: 'form-check-input' %>
-    <%= form.label :acumula_festivo_en_libranza, 'Acumula festivos en día de libranza', class: 'form-check-label' %>
-  </div>
+  <hr>
 
-  <div class="text-end mt-4">
-    <%= form.submit class: 'btn-primary' %>
-    <%= link_to 'Cancelar', admin_tipo_contratos_path, class: 'btn-primary ms-2' %>
+  <div class="d-flex justify-content-between align-items-center">
+    <%= form.submit "Guardar Tipo de Contrato", class: "btn btn-primary" %>
+
+    <% if tipo_contrato.persisted? %>
+      <button type="button" class="btn btn-danger"
+              data-bs-toggle="modal" data-bs-target="#passwordVerificationModal"
+              data-action="click->password-verification#setDeleteUrl"
+              data-password-verification-delete-url-value="<%= admin_tipo_contrato_path(tipo_contrato) %>">
+        Eliminar
+      </button>
+    <% end %>
   </div>
 <% end %>

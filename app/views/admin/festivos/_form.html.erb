@@ -36,8 +36,20 @@
     </div>
   </div>
 
-  <div class="mt-4">
-    <%= form.submit "Guardar Festivo", class: 'btn btn-primary' %>
-    <%= link_to 'Cancelar', admin_festivos_path, class: 'btn btn-secondary' %>
+  <div class="mt-4 d-flex justify-content-between align-items-center">
+    <div>
+      <%= form.submit "Guardar Festivo", class: 'btn btn-primary' %>
+      <%= link_to 'Cancelar', admin_festivos_path, class: 'btn btn-secondary ms-2' %>
+    </div>
+
+    <% if festivo.persisted? %>
+      <button type="button" class="btn btn-danger"
+              data-bs-toggle="modal" data-bs-target="#passwordVerificationModal"
+              data-action="click->password-verification#setDeleteUrl"
+              data-password-verification-delete-url-value="<%= admin_festivo_path(festivo) %>">
+        Eliminar
+      </button>
+    <% end %>
   </div>
+
 <% end %>

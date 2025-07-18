@@ -1,36 +1,32 @@
 # app/models/tipo_ausencia.rb
+# Define los diferentes tipos de ausencias que un trabajador puede tener.
 class TipoAusencia < ApplicationRecord
-  # Un tipo de ausencia no puede ser eliminado si está siendo usado por alguna entrada diaria.
+  # --- ASOCIACIONES ---
+  # Si un tipo de ausencia está en uso, no se puede borrar.
   has_many :entrada_diarias, dependent: :restrict_with_error
 
-  validates :nombre, presence: true, uniqueness: true
-  validates :abreviatura, presence: true, uniqueness: true, length: { maximum: 10 }
-
-  # Enum para la categoría de la bolsa afectada, para mayor robustez y claridad.
+  # --- ENUMS ---
+  # Para estandarizar los valores posibles del campo.
   enum categoria_bolsa_afectada: {
-    ninguna: 'ninguna', # No afecta a ninguna bolsa
-    horas: 'horas', # Afecta a la bolsa de horas principal
-    festivos: 'festivos', # Afecta a la bolsa de festivos trabajados
-    libranza: 'libranza' # Afecta a la bolsa de festivos en libranza
-  }, _prefix: :consume_de
+    ninguna: 'ninguna',
+    horas: 'horas',
+    festivos: 'festivos',
+    libranza: 'libranza'
+  }
 
-  # --- Validaciones de Lógica de Negocio ---
-  # Evita configuraciones inconsistentes ("estados imposibles") identificadas en la auditoría.
-  validate :consistencia_de_configuracion_de_bolsa
+  # --- VALIDACIONES ---
+  validates :nombre, presence: true, uniqueness: { case_sensitive: false }
+  validates :abreviatura, presence: true, uniqueness: { case_sensitive: false }
+  validates :es_fraccionable, :es_retribuida, :genera_deuda_en_bolsa, inclusion: { in: [true, false] }
+  validates :limite_horas_anuales, numericality: { greater_than_or_equal_to: 0, allow_nil: true }
+  validate :deuda_implica_bolsa_de_horas
 
   private
 
-  def consistencia_de_configuracion_de_bolsa
-    # ESCENARIO 1: Si una ausencia genera deuda, DEBE tener una bolsa de destino.
-    # No puede generar una deuda "fantasma".
-    if genera_deuda_en_bolsa? && consume_de_ninguna?
+  def deuda_implica_bolsa_de_horas
+    # Si una ausencia genera deuda, debe afectar a alguna bolsa (no puede ser 'ninguna').
+    if genera_deuda_en_bolsa && categoria_bolsa_afectada == 'ninguna'
       errors.add(:categoria_bolsa_afectada, "debe seleccionar una bolsa (Horas, Festivos o Libranza) si la ausencia genera deuda")
-    end
-
-    # ESCENARIO 2: Si una ausencia NO genera deuda, NO PUEDE tener una bolsa de destino.
-    # No tiene sentido que consuma de una bolsa si no genera deuda.
-    if !genera_deuda_en_bolsa? && !consume_de_ninguna?
-      errors.add(:categoria_bolsa_afectada, "debe ser 'ninguna' si la ausencia no genera deuda")
     end
   end
 end

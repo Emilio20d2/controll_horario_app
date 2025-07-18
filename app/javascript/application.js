@@ -1,5 +1,4 @@
-// Entry point for the build script in your package.json
+// Configure your import map in config/importmap.rb. Read more: https://github.com/rails/importmap-rails
 import "@hotwired/turbo-rails"
-import "./controllers"
-// Importa Bootstrap y Popper (necesario para los dropdowns, tooltips, etc.)
-import * as bootstrap from "bootstrap"
+import "controllers"
+import "bootstrap"

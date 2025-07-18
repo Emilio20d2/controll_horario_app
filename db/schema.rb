@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_25_100005) do
+ActiveRecord::Schema[7.1].define(version: 2025_07_26_100000) do
   create_table "asignacion_turnos", force: :cascade do |t|
     t.integer "trabajador_id", null: false
     t.integer "plantilla_horario_id", null: false
@@ -26,9 +26,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_100005) do
     t.integer "trabajador_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "saldo_bolsa_horas", default: 0, null: false
-    t.integer "saldo_bolsa_festivos", default: 0, null: false
-    t.integer "saldo_bolsa_libranza", default: 0, null: false
+    t.decimal "saldo_bolsa_horas", precision: 7, scale: 2, default: "0.0", null: false
+    t.decimal "saldo_bolsa_festivos", precision: 7, scale: 2, default: "0.0", null: false
+    t.decimal "saldo_bolsa_libranza", precision: 7, scale: 2, default: "0.0", null: false
     t.index ["trabajador_id"], name: "index_bolsa_horas_saldos_on_trabajador_id", unique: true
   end
 
@@ -36,8 +36,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_100005) do
     t.integer "anio", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "horas_maximas", default: 0, null: false
-    t.integer "jornada_semanal_maxima", default: 0, null: false
+    t.decimal "horas_maximas", precision: 5, scale: 2, default: "0.0", null: false
+    t.decimal "jornada_semanal_maxima", precision: 5, scale: 2, default: "0.0", null: false
     t.index ["anio"], name: "index_configuracion_jornadas_on_anio", unique: true
   end
 
@@ -50,9 +50,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_100005) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "motivo"
-    t.integer "horas_trabajadas", default: 0, null: false
-    t.integer "horas_ausencia", default: 0, null: false
-    t.integer "horas_comp_pagadas", default: 0, null: false
+    t.decimal "horas_trabajadas", precision: 5, scale: 2, default: "0.0", null: false
+    t.decimal "horas_ausencia", precision: 5, scale: 2, default: "0.0", null: false
+    t.decimal "horas_comp_pagadas", precision: 5, scale: 2, default: "0.0", null: false
     t.index ["tipo_ausencia_id"], name: "index_entrada_diarias_on_tipo_ausencia_id"
     t.index ["trabajador_id", "fecha"], name: "index_entrada_diarias_on_trabajador_id_and_fecha", unique: true
     t.index ["trabajador_id"], name: "index_entrada_diarias_on_trabajador_id"
@@ -73,7 +73,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_100005) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "dias_laborables_semana_contratados", default: 5, null: false
-    t.integer "horas_semanales_contratadas", default: 0, null: false
+    t.decimal "horas_semanales_contratadas", precision: 5, scale: 2, default: "0.0", null: false
     t.index ["trabajador_id"], name: "index_historial_contratos_on_trabajador_id"
   end
 
@@ -83,9 +83,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_100005) do
     t.text "datos_calculo"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "jornada_anual_ajustada", default: 0, null: false
-    t.integer "horas_anuales_realizadas", default: 0, null: false
-    t.integer "balance_final", default: 0, null: false
+    t.decimal "jornada_anual_ajustada", precision: 7, scale: 2, default: "0.0", null: false
+    t.decimal "horas_anuales_realizadas", precision: 7, scale: 2, default: "0.0", null: false
+    t.decimal "balance_final", precision: 7, scale: 2, default: "0.0", null: false
     t.index ["trabajador_id"], name: "index_historial_jornada_anuales_on_trabajador_id"
   end
 
@@ -94,7 +94,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_100005) do
     t.integer "anio"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "horas_acumuladas", default: 0, null: false
+    t.decimal "horas_acumuladas", precision: 5, scale: 2, default: "0.0", null: false
     t.index ["trabajador_id"], name: "index_limite_festivo_libranzas_on_trabajador_id"
   end
 
@@ -106,7 +106,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_100005) do
     t.string "concepto", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "cantidad_horas", default: 0, null: false
+    t.decimal "cantidad_horas", precision: 5, scale: 2, default: "0.0", null: false
     t.index ["trabajador_id"], name: "index_movimiento_bolsas_on_trabajador_id"
   end
 
@@ -127,7 +127,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_100005) do
     t.boolean "es_fraccionable", default: false, null: false
     t.string "categoria_bolsa_afectada", default: "ninguna", null: false
     t.string "abreviatura", limit: 10
-    t.integer "limite_horas_anuales"
+    t.decimal "limite_horas_anuales", precision: 5, scale: 2
+    t.boolean "suspende_contrato"
     t.index ["categoria_bolsa_afectada"], name: "index_tipo_ausencias_on_categoria_bolsa_afectada"
   end
 
@@ -147,7 +148,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_25_100005) do
     t.date "fecha_baja"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "jornada_semanal_actual", default: 0, null: false
+    t.decimal "jornada_semanal_actual", precision: 5, scale: 2, default: "0.0", null: false
     t.index ["tipo_contrato_id"], name: "index_trabajadores_on_tipo_contrato_id"
   end
 

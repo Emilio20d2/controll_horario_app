@@ -117,7 +117,7 @@ namespace :importar do
 
       ActiveRecord::Base.transaction do
         # Actualizamos la jornada semanal actual directamente en el trabajador, como has pedido.
-        trabajador.update!(jornada_semanal_actual: safe_to_decimal(row['HORAS CONTRATADAS']))
+        trabajador.update!(jornada_semanal_actual: safe_to_decimal(row['HORAS CONTRATADAS'])) # Guardamos como decimal
 
         nombre_plantilla = "#{nombre_trabajador} #{Date.today.year}"
         horario_json = {}
@@ -128,7 +128,7 @@ namespace :importar do
             col_header = "#{dia_semana} TURNO #{turno_num}"
             dia_key = dia_semana.downcase
             # Accedemos a la fila por el nombre exacto del encabezado en el Excel
-            horario_json[turno_key][dia_key] = safe_to_decimal(row[col_header])
+            horario_json[turno_key][dia_key] = safe_to_decimal(row[col_header]) # Guardamos como decimal
           end
         end
         

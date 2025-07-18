@@ -9,7 +9,7 @@ gem "rails", "~> 7.1.3"
 gem "sprockets-rails"
 
 # Use SCSS for stylesheets. Required by the bootstrap gem.
-gem "dartsass-sprockets"
+gem "dartsass-rails"
 
 # Use sqlite3 as the database for Active Record
 gem "sqlite3", "~> 1.4"
@@ -53,16 +53,14 @@ group :development, :test do
 end
 
 group :development do
-  gem "bootstrap", "~> 5.3.3"
-end
-
-group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
-
+  # Use Bootstrap for styling
+  gem "bootstrap", "~> 5.3.3"
+  # Use Foreman to run web and assets compilation servers together
+  gem "foreman"
   # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
   # gem "rack-mini-profiler"
-
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
 end

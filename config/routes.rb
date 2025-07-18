@@ -28,6 +28,8 @@ Rails.application.routes.draw do
 
   # Rutas para la sección de configuración/administración
   namespace :admin do
+    # Ruta POST para verificar la contraseña del usuario actual.
+    post 'verifications', to: 'verifications#create', as: :verify_password
     root 'dashboard#index'
     resources :trabajadores do
       resources :historial_contratos, only: [:new, :create], path: 'jornada', path_names: { new: 'nueva' }
@@ -41,6 +43,8 @@ Rails.application.routes.draw do
     resources :tipo_ausencias
     resources :tipo_contratos, except: [:show, :destroy]
     resources :jornada_anual, as: 'configuracion_jornadas', controller: 'jornada_anual', except: [:show]
+    # Habilitamos el CRUD completo para usuarios en el panel de administración
+    resources :users
   end
 
   # Ruta para los informes en PDF

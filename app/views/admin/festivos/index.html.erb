@@ -39,8 +39,6 @@
             <td class="text-end">
               <div class="d-flex justify-content-end gap-2">
                 <%= link_to 'Editar', edit_admin_festivo_path(festivo), class: 'btn btn-sm btn-outline-secondary' %>
-                <%= button_to 'Eliminar', admin_festivo_path(festivo), method: :delete, class: 'btn btn-sm btn-outline-danger', form: { data: { turbo_confirm: "ATENCIÓN: ¿Estás seguro de que quieres eliminar '#{festivo.descripcion}' del #{l(festivo.fecha)}?" } } %>
-              </div>
             </td>
           </tr>
         <% end %>

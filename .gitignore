@@ -39,3 +39,6 @@ vendor/bundle/
 # Ignorar claves SSH privadas/públicas si están en el proyecto
 emilio
 emilio.pub
+
+/app/assets/builds/*
+!/app/assets/builds/.keep

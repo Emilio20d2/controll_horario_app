@@ -8,8 +8,8 @@ gem "rails", "~> 7.1.3"
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem "sprockets-rails"
 
-# Use SCSS for stylesheets. Required by the bootstrap gem.
-gem "dartsass-sprockets"
+# Use SCSS for stylesheets
+gem "dartsass-rails"
 
 # Use sqlite3 as the database for Active Record
 gem "sqlite3", "~> 1.4"
@@ -61,6 +61,9 @@ group :development do
 
   # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
   # gem "rack-mini-profiler"
+
+  # Use Foreman to run web and assets compilation servers together
+  gem "foreman"
 
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"

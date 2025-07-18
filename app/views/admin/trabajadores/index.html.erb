@@ -11,6 +11,7 @@
   </div>
 </div>
 
+
 <div class="card mx-auto" style="max-width: 1100px; width: 90%;">
   <div class="card-body p-0"> <%# p-0 para que la tabla ocupe todo el espacio de la tarjeta %>
     <div class="table-responsive">
@@ -26,24 +27,20 @@
         </thead>
         <tbody>
           <% @trabajadores.each do |trabajador| %>
+
             <tr>
-              <td class="py-3 px-4 align-middle"><%= trabajador.nombre %></td>
-              <td class="py-3 px-4 align-middle"><%= trabajador.tipo_contrato&.nombre || 'N/A' %></td>
-              <td class="py-3 px-4 align-middle"><%= number_to_human(trabajador.jornada_semanal_actual, precision: 2, strip_insignificant_zeros: true) %> h</td>
-              <td class="py-3 px-4 align-middle">
-                <% saldo = trabajador.bolsa_horas_saldo %>
-                <%= number_with_precision(
-                  (saldo&.saldo_bolsa_horas || 0) + (saldo&.saldo_bolsa_festivos || 0) + (saldo&.saldo_bolsa_libranza || 0),
-                  precision: 2
-                ) %>
-              </td>
-              <td class="text-end py-3 px-4 align-middle">
-                <%= link_to 'Ver Ficha', admin_trabajador_path(trabajador), class: 'btn btn-sm btn-primary' %>
-              </td>
+              <th class="py-3 px-4">Nombre</th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <% @trabajadores.each do |trabajador| %>
+              <tr>
+                <td class="py-3 px-4 align-middle"><%= trabajador.nombre %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

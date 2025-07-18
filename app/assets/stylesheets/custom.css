@@ -110,3 +110,18 @@ form label {
   justify-content: center;
   align-items: center;
 }
+
+/* Estilos específicos para el listado de empleados */
+.contenedor-empleados {
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.contenedor-empleados thead th {
+  color: #000;
+}
+
+.contenedor-empleados th,
+.contenedor-empleados td {
+  padding: 10px 15px;
+}

@@ -8,7 +8,7 @@ class Admin::TrabajadoresController < ApplicationController
   def show
     @asignaciones_turno = @trabajador.asignacion_turnos.includes(:plantilla_horario).order(fecha_inicio: :desc)
     @historial_contratos = @trabajador.historial_contratos.order(fecha_inicio_vigencia: :desc)
-    @historial_jornada_anual_registros = @trabajador.historial_jornada_anuales.order(anio: :desc)
+    @resumen_jornadas = @trabajador.resumen_jornadas_anuales
     
     @anio_actual = Date.today.year
     # Calculamos la jornada anual para el año actual y la pasamos a la vista.

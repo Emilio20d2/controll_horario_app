@@ -94,5 +94,19 @@ class Trabajador < ApplicationRecord
       }
     }
   end
+
+  # Devuelve un resumen anual desde el primer contrato hasta el año actual.
+  # Cada elemento incluye jornada teórica, horas computables reales y balance.
+  def resumen_jornadas_anuales
+    inicio = historial_contratos.minimum(:fecha_inicio_vigencia)
+    return [] unless inicio
+
+    fin = [Date.today.year, fecha_baja&.year].compact.max
+
+    (inicio.year..fin).map do |anio|
+      calculo = CalculoJornadaAnualService.call(self, anio)
+      calculo.merge(anio: anio)
+    end
+  end
 end
   

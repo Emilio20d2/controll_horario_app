@@ -96,6 +96,7 @@
           <%= number_field_tag :bolsa_libranza, saldo.saldo_bolsa_libranza, class: "form-control readonly-field", readonly: true %>
         </div>
       </div>
+      <%= link_to "Editar bolsa de horas", new_admin_trabajador_movimiento_bolsa_path(trabajador), class: "btn btn-warning btn-sm" %>
     </div>
   </div>
 
@@ -122,17 +123,31 @@
   <div class="card mb-4">
     <div class="card-header"><h5>Cálculo de Jornada Anual</h5></div>
     <div class="card-body">
-      <div class="mb-3 p-2 bg-light rounded">
-        <strong>Año actual (<%= Date.today.year %>):</strong>
-        <% if calculo_actual && !calculo_actual[:error] %>
-          <div>Teóricas: <%= number_with_precision(calculo_actual[:horas_teoricas], precision: 2) %> h</div>
-          <div>Reales: <%= number_with_precision(calculo_actual[:horas_reales], precision: 2) %> h</div>
-          <% bal = calculo_actual[:balance] %>
-          <div>Balance: <span class="<%= bal >= 0 ? 'text-success' : 'text-danger' %>"><%= number_with_precision(bal, precision: 2) %> h</span></div>
-        <% else %>
-          <div><%= calculo_actual[:error] || 'Sin datos para el cálculo.' %></div>
-        <% end %>
-      </div>
+      <h6 class="mb-3">Año actual (<%= Date.today.year %>)</h6>
+      <table class="table table-bordered w-auto mb-4">
+        <tbody>
+          <% if calculo_actual && !calculo_actual[:error] %>
+            <tr>
+              <th>Jornada teórica</th>
+              <td><%= number_with_precision(calculo_actual[:horas_teoricas], precision: 2) %> h</td>
+            </tr>
+            <tr>
+              <th>Horas trabajadas</th>
+              <td><%= number_with_precision(calculo_actual[:horas_reales], precision: 2) %> h</td>
+            </tr>
+            <% bal = calculo_actual[:balance] %>
+            <tr>
+              <th>Haber/Deber</th>
+              <td class="<%= bal >= 0 ? 'text-success' : 'text-danger' %>"><%= number_with_precision(bal, precision: 2) %> h</td>
+            </tr>
+          <% else %>
+            <tr>
+              <td colspan="2"><%= calculo_actual[:error] || 'Sin datos para el cálculo.' %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
       <h6>Histórico Anual</h6>
       <table class="table table-sm table-striped">
         <thead>
@@ -156,10 +171,6 @@
   <div class="d-flex justify-content-between align-items-center">
     <div>
       <%= form.submit "Guardar", class: "btn btn-primary" %>
-      <% if trabajador.persisted? %>
-        <%= link_to "Asignar Horario", new_admin_trabajador_asignacion_turno_path(trabajador), class: "btn btn-info ms-2" %>
-        <%= link_to "Ver Historial", admin_trabajador_movimientos_path(trabajador), class: "btn btn-secondary ms-2" %>
-      <% end %>
     </div>
     <% if trabajador.persisted? %>
       <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#passwordVerificationModal" data-action="click->password-verification#setDeleteUrl" data-password-verification-delete-url-value="<%= admin_trabajador_path(trabajador) %>">

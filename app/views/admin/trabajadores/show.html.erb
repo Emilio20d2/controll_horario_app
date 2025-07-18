@@ -1,134 +1,140 @@
-<%#
-  Vista de detalle para un trabajador. Muestra toda la información relevante
-  y proporciona acciones específicas para ese trabajador.
-%>
+<%# Vista completa de la ficha del trabajador %>
+<% asignacion_vigente = @asignaciones_turno.first %>
+<% movimientos_iniciales = @trabajador.movimiento_bolsas.where(tipo_movimiento: :saldo_inicial).order(:fecha_efectiva) %>
+<% saldo_actual = @trabajador.bolsa_horas_saldo %>
 
 <div class="page-header">
   <h1>Ficha de: <%= @trabajador.nombre %></h1>
-  <div>
-    <%= link_to 'Editar Ficha', edit_admin_trabajador_path(@trabajador), class: 'btn btn-secondary' %>
-    <%= link_to 'Asignar Horario', new_admin_trabajador_asignacion_turno_path(@trabajador), class: 'btn btn-info' %>
-    <%= link_to 'Ajuste Manual Bolsa', new_admin_trabajador_movimiento_bolsa_path(@trabajador), class: 'btn btn-warning' %>
-    <%= link_to 'Volver al Listado', admin_trabajadores_path, class: 'btn btn-outline-secondary ms-2' %>
-  </div>
+  <%= link_to 'Volver al Listado', admin_trabajadores_path, class: 'btn btn-outline-secondary' %>
 </div>
 
-<div class="row mt-4">
-  <%# Columna izquierda: Datos del trabajador %>
-  <div class="col-md-5">
-    <div class="card">
-      <div class="card-header">
-        <h5>Datos del Trabajador</h5>
-      </div>
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item"><strong>Tipo Contrato:</strong> <%= @trabajador.tipo_contrato&.nombre || 'N/A' %></li>
-        <li class="list-group-item"><strong>Jornada Semanal:</strong> <%= number_to_human(@trabajador.jornada_semanal_actual, precision: 2, strip_insignificant_zeros: true) %> horas</li>
-      </ul>
+<div class="contenedor-ficha-empleado">
+  <%# Datos personales %>
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between">
+      <h5 class="mb-0">Datos Personales</h5>
+      <%= link_to 'Editar Datos', edit_admin_trabajador_path(@trabajador), class: 'btn btn-sm btn-secondary' %>
     </div>
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item"><strong>Nombre:</strong> <%= @trabajador.nombre %></li>
+      <li class="list-group-item"><strong>Fecha Alta:</strong> <%= @trabajador.fecha_alta ? l(@trabajador.fecha_alta) : '-' %></li>
+      <li class="list-group-item"><strong>Fecha Baja:</strong> <%= @trabajador.fecha_baja ? l(@trabajador.fecha_baja) : '-' %></li>
+      <li class="list-group-item"><strong>Tipo Contrato:</strong> <%= @trabajador.tipo_contrato&.nombre || 'N/A' %></li>
+    </ul>
   </div>
 
-  <%# Columna derecha: Calendario laboral vigente %>
-  <div class="col-md-7">
-    <div class="card">
-      <div class="card-header">
-        <h5>Calendario Laboral Vigente</h5>
-      </div>
-      <div class="card-body p-0">
-        <% asignacion_vigente = @asignaciones_turno.first %>
-        <% if asignacion_vigente && asignacion_vigente.plantilla_horario&.horario %>
-          <div class="table-responsive">
-            <table class="table table-bordered table-sm text-center mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Turno</th>
-                  <th>L</th><th>M</th><th>X</th><th>J</th><th>V</th><th>S</th><th>D</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% (1..4).each do |turno_num| %>
-                  <tr>
-                    <td><strong>T<%= turno_num %></strong></td>
-                    <% %w[lunes martes miercoles jueves viernes sabado domingo].each do |dia| %>
-                      <td><%= asignacion_vigente.plantilla_horario.horario.dig("turno#{turno_num}", dia) || 0 %></td>
-                    <% end %>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
-          </div>
-        <% else %>
-          <div class="alert alert-warning m-3">No hay un horario asignado para este trabajador.</div>
-        <% end %>
-      </div>
+  <%# Jornada semanal actual e historial %>
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">Jornada Semanal</h5>
     </div>
-  </div>
-</div>
-
-<div class="card mt-4">
-  <div class="card-header">
-    <h5>Balance de Jornada Anual</h5>
-  </div>
-  <div class="card-body">
-    <%# Sección para el cálculo del año actual %>
-    <div class="mb-4 p-3 bg-light rounded">
-      <h6>Balance para el año en curso (<%= @anio_actual %>)</h6>
-      <% if @calculo_jornada_actual && !@calculo_jornada_actual[:error] %>
-        <div class="row">
-          <div class="col"><strong>Teóricas:</strong> <%= number_with_precision(@calculo_jornada_actual[:horas_teoricas], precision: 2) %> h</div>
-          <div class="col"><strong>Reales:</strong> <%= number_with_precision(@calculo_jornada_actual[:horas_reales], precision: 2) %> h</div>
-          <div class="col">
-            <strong>Balance:</strong>
-            <% balance = @calculo_jornada_actual[:balance] %>
-            <span class="<%= balance >= 0 ? 'text-success' : 'text-danger' %> fw-bold">
-              <%= number_with_precision(balance, precision: 2) %> h
-            </span>
-          </div>
-        </div>
-      <% else %>
-        <div class="alert alert-info mb-0"><%= @calculo_jornada_actual[:error] || "No se pudo calcular el balance para el año actual." %></div>
-      <% end %>
-    </div>
-
-    <%# Sección para el historial de balances guardados %>
-    <h6>Historial de Balances Guardados</h6>
-    <% if @historial_jornada_anual_registros.any? %>
-      <table class="table table-sm table-striped">
+    <div class="card-body">
+      <p><strong>Actual:</strong> <%= number_to_human(@trabajador.jornada_semanal_actual, precision: 2, strip_insignificant_zeros: true) %> h</p>
+      <h6>Historial</h6>
+      <table class="table table-sm">
         <thead>
-          <tr>
-            <th>Año</th><th>Jornada Ajustada</th><th>Horas Realizadas</th><th>Balance Final</th>
-          </tr>
+          <tr><th>Inicio</th><th>Fin</th><th>Horas/Semana</th></tr>
         </thead>
         <tbody>
-          <% @historial_jornada_anual_registros.each do |registro| %>
+          <% @historial_contratos.each do |contrato| %>
             <tr>
-              <td><%= registro.anio %></td>
-              <td><%= number_with_precision(registro.jornada_anual_ajustada / 60.0, precision: 2) %> h</td>
-              <td><%= number_with_precision(registro.horas_anuales_realizadas / 60.0, precision: 2) %> h</td>
-              <td>
-                <% balance = registro.balance_final / 60.0 %>
-                <span class="<%= balance >= 0 ? 'text-success' : 'text-danger' %> fw-bold"><%= number_with_precision(balance, precision: 2) %> h</span>
-              </td>
+              <td><%= l contrato.fecha_inicio_vigencia %></td>
+              <td><%= contrato.fecha_fin_vigencia ? l(contrato.fecha_fin_vigencia) : 'Actual' %></td>
+              <td><%= number_to_human(contrato.horas_semanales_contratadas, precision: 2, strip_insignificant_zeros: true) %> h</td>
             </tr>
           <% end %>
         </tbody>
       </table>
-    <% else %>
-      <p>No hay balances anuales guardados para este trabajador.</p>
-    <% end %>
+    </div>
+  </div>
 
-    <%# Formulario para guardar el balance de un año específico %>
-    <hr>
-    <h6>Guardar Balance Anual</h6>
-    <%= form_with(url: admin_trabajador_historial_jornada_anuales_path(@trabajador), method: :post, class: "row g-3 align-items-center") do |form| %>
-      <div class="col-auto">
-        <%= form.label :anio, "Año a calcular y guardar:", class: "col-form-label" %>
-      </div>
-      <div class="col-auto">
-        <%= form.number_field :anio, class: "form-control", value: Date.today.year - 1, required: true %>
-      </div>
-      <div class="col-auto">
-        <%= form.submit "Guardar Balance", class: "btn btn-success" %>
-      </div>
-    <% end %>
+  <%# Calendario laboral vigente %>
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between">
+      <h5 class="mb-0">Calendario Laboral</h5>
+      <%= link_to 'Asignar/Modificar', new_admin_trabajador_asignacion_turno_path(@trabajador), class: 'btn btn-sm btn-info' %>
+    </div>
+    <div class="card-body p-0">
+      <% if asignacion_vigente && asignacion_vigente.plantilla_horario&.horario %>
+        <%= render 'parrilla_horario', horario: asignacion_vigente.plantilla_horario.horario %>
+      <% else %>
+        <div class="alert alert-warning m-3">No hay un horario asignado para este trabajador.</div>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Bolsas de horas actuales %>
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between">
+      <h5 class="mb-0">Bolsas de Horas</h5>
+      <%= link_to 'Ajustar', new_admin_trabajador_movimiento_bolsa_path(@trabajador), class: 'btn btn-sm btn-warning' %>
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0">
+        <tbody>
+          <tr><th>Normal</th><td><%= number_with_precision(saldo_actual&.saldo_bolsa_horas || 0, precision: 2) %> h</td></tr>
+          <tr><th>Festivo Trabajado</th><td><%= number_with_precision(saldo_actual&.saldo_bolsa_festivos || 0, precision: 2) %> h</td></tr>
+          <tr><th>Festivo Libranza</th><td><%= number_with_precision(saldo_actual&.saldo_bolsa_libranza || 0, precision: 2) %> h</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <%# Jornada anual e histórico %>
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">Jornada Anual</h5>
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-sm tabla-jornada-anual mb-0">
+        <thead>
+          <tr><th>Año</th><th>Jornada Teórica</th><th>Horas Trabajadas</th><th>Diferencia</th></tr>
+        </thead>
+        <tbody>
+          <% @resumen_jornadas.each do |r| %>
+            <% balance = r[:balance] %>
+            <tr>
+              <td><%= r[:anio] %></td>
+              <td><%= number_with_precision(r[:horas_teoricas], precision: 2) %> h</td>
+              <td><%= number_with_precision(r[:horas_reales], precision: 2) %> h</td>
+              <td><span class="<%= balance >= 0 ? 'text-success' : 'text-danger' %>"><%= number_with_precision(balance, precision: 2) %> h</span></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <%# Bolsas iniciales %>
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">Bolsas Iniciales</h5>
+    </div>
+    <div class="card-body p-0">
+      <% if movimientos_iniciales.any? %>
+        <table class="table table-sm mb-0">
+          <thead>
+            <tr><th>Fecha</th><th>Bolsa</th><th>Horas</th></tr>
+          </thead>
+          <tbody>
+            <% movimientos_iniciales.each do |mov| %>
+              <tr>
+                <td><%= l mov.fecha_efectiva %></td>
+                <td><%= mov.categoria_bolsa_afectada.humanize %></td>
+                <td><%= number_with_precision(mov.cantidad_horas, precision: 2) %> h</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="m-3">No hay bolsas iniciales registradas.</p>
+      <% end %>
+    </div>
   </div>
 </div>
+
+<%# Estilos específicos para esta ficha %>
+<style>
+  .contenedor-ficha-empleado { margin-left: 40px; margin-right: 40px; }
+  .tabla-jornada-anual th, .tabla-jornada-anual td { padding: 0.25rem 0.5rem; }
+</style>

@@ -18,6 +18,12 @@ export default class extends Controller {
    * prepararla en el modal para su uso posterior.
    */
   setDeleteUrl(event) {
+    const confirmationMessage = "¿Estás seguro de que quieres eliminar este elemento?\n" +
+      "Este proceso es irreversible.\n" +
+      "Pulsa ‘Aceptar’ para continuar o ‘Cancelar’ para detener.";
+    if (!window.confirm(confirmationMessage)) {
+      return;
+    }
     // Obtenemos la URL desde el atributo 'data-password-verification-delete-url-value' del botón.
     const deleteUrl = event.currentTarget.dataset.passwordVerificationDeleteUrlValue;
 

@@ -8,7 +8,6 @@
   - @tipos_ausencia: Colección de todos los tipos de ausencia.
   - @festivos_semana: Array con las fechas que son festivo.
 %>
-<% contrato_vigente = trabajador.contrato_vigente_en(@fechas_semana.first) %>
 <%= form_with(url: procesar_fila_trabajador_path, method: :post,
               data: {
                 controller: "previsualizacion",
@@ -16,10 +15,6 @@
                 previsualizacion_trabajador_id_value: trabajador.id,
                 previsualizacion_anio_value: @anio_seleccionado,
                 previsualizacion_semana_value: @semana_seleccionada,
-                previsualizacion_jornada_semanal_value: trabajador.jornada_semanal_actual,
-                previsualizacion_dias_laborables_value: contrato_vigente&.dias_laborables_semana_contratados || 5,
-                previsualizacion_acumula_festivos_value: trabajador.tipo_contrato.acumula_festivo_trabajado_en_bolsa,
-                previsualizacion_acumula_libranza_value: trabajador.tipo_contrato.acumula_festivo_en_libranza,
                 action: "change->previsualizacion#recalcular"
               }) do |form| %>
   <tr class="align-middle">

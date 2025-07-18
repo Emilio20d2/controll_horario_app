@@ -17,9 +17,11 @@
                 previsualizacion_semana_value: @semana_seleccionada,
                 action: "change->previsualizacion#recalcular"
               }) do |form| %>
-  <tr class="align-middle">
-    <td class="fw-bold">
-      <%= trabajador.nombre %>
+  <tr class="trabajador-row align-middle" id="fila_trabajador_<%= trabajador.id %>">
+    <td class="empleado-cell">
+      <strong><%= trabajador.nombre %></strong><br>
+      <small class="text-muted"><%= trabajador.tipo_contrato.nombre %></small><br>
+      <small>Jornada: <%= number_with_precision(trabajador.jornada_semanal_actual, precision: 2) %>h</small>
       <%= form.hidden_field :trabajador_id, value: trabajador.id %>
       <%= form.hidden_field :anio, value: @anio_seleccionado %>
       <%= form.hidden_field :semana, value: @semana_seleccionada %>
@@ -32,9 +34,25 @@
       </td>
     <% end %>
 
-    <td data-previsualizacion-target="output">
-      <%# Aquí se renderizará la previsualización de las bolsas de horas. %>
-      <%= render 'previsualizacion_bolsas', resultado_simulacion: nil %>
+    <td class="preview-cell">
+      <ul class="list-unstyled mb-0">
+        <li class="d-flex justify-content-between">
+          <span>H.Trabajadas</span>
+          <strong data-previsualizacion-target="totalComputadas">...</strong>
+        </li>
+        <li class="d-flex justify-content-between">
+          <span>B. Horas</span>
+          <strong data-previsualizacion-target="impactoOrdinaria">...</strong>
+        </li>
+        <li class="d-flex justify-content-between">
+          <span>B. Festivos</span>
+          <strong data-previsualizacion-target="impactoFestivos">...</strong>
+        </li>
+        <li class="d-flex justify-content-between">
+          <span>B. Libranza</span>
+          <strong data-previsualizacion-target="impactoLibranza">...</strong>
+        </li>
+      </ul>
     </td>
 
     <td class="text-center">

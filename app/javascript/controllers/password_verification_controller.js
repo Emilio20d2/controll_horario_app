@@ -20,7 +20,7 @@ export default class extends Controller {
   setDeleteUrl(event) {
     // Obtenemos la URL desde el atributo 'data-password-verification-delete-url-value' del botón.
     const deleteUrl = event.currentTarget.dataset.passwordVerificationDeleteUrlValue;
-    
+
     // La guardamos en el campo oculto del formulario del modal.
     this.deleteUrlTarget.value = deleteUrl;
 
@@ -29,6 +29,9 @@ export default class extends Controller {
     this.errorContainerTarget.textContent = "";
     this.submitButtonTarget.disabled = false;
     this.submitButtonTarget.textContent = "Verificar y Continuar";
+
+    // Abrimos el modal de forma programática para garantizar su visualización.
+    this.modal.show();
   }
 
   /**
